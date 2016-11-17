@@ -1,0 +1,10 @@
+C:\CrossPlatform\OpenTkExample\OpenTkExample\bin\Debug\OpenTkExample.exe.config
+C:\CrossPlatform\OpenTkExample\OpenTkExample\bin\Debug\OpenTkExample.exe
+C:\CrossPlatform\OpenTkExample\OpenTkExample\bin\Debug\OpenTkExample.pdb
+C:\CrossPlatform\OpenTkExample\OpenTkExample\bin\Debug\OpenTK.dll
+C:\CrossPlatform\OpenTkExample\OpenTkExample\bin\Debug\OpenTK.xml
+C:\CrossPlatform\OpenTkExample\OpenTkExample\obj\Debug\OpenTkExample.csprojResolveAssemblyReference.cache
+C:\CrossPlatform\OpenTkExample\OpenTkExample\obj\Debug\OpenTkExample.Properties.Resources.resources
+C:\CrossPlatform\OpenTkExample\OpenTkExample\obj\Debug\OpenTkExample.csproj.GenerateResource.Cache
+C:\CrossPlatform\OpenTkExample\OpenTkExample\obj\Debug\OpenTkExample.exe
+C:\CrossPlatform\OpenTkExample\OpenTkExample\obj\Debug\OpenTkExample.pdb
