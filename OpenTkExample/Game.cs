@@ -20,7 +20,17 @@ namespace OpenTkExample
 		bool right = false, left = false, up = false, down = false;
 		OpenTK.Input.KeyboardState lastKeystate;
 		float deltaTime = 0.0f;
-	 
+		static float FISTDISTANCE = -5.0f;
+		float xdist = 0.0f;
+		float ydist = 0.0f;
+		float zdist = FISTDISTANCE;
+
+		float horizontalAngle = 3.14f;
+		float verticalAngle = 0.0f;
+
+		Vector3 direction = new Vector3();
+		Vector3 rightDirection = new Vector3();
+
 
 
 		public Game():
@@ -53,6 +63,7 @@ namespace OpenTkExample
 			GL.Viewport(0, 0, Width, Height);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.Enable(EnableCap.DepthTest);
+			GL.Enable(EnableCap.CullFace);
 
 			GL.EnableVertexAttribArray(helper.AttributeVPosition);
 			GL.EnableVertexAttribArray(helper.AttributeVcolor);
@@ -109,17 +120,38 @@ namespace OpenTkExample
 			time += (float)e.Time;
 			etime = (float)e.Time;
 
-
 			Inputs();
+			Sides();
+			 
+			
+			cube.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
+			cube.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
+			cube.ModelViewProjectionMatrix = cube.ModelMatrix * cube.ViewMatrix * cube.ViewProjectionMatrix;
+
+			GL.UseProgram(helper.ProgramId);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, helper.IBOElements);
+			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indicedata.Length * sizeof(int)), indicedata, BufferUsageHint.StaticDraw);
+
+		}
+
+	 
+
+		private void Sides()
+		{
 			// perform rotation of the cube depending on the keyboard state
 			if (autoRotate)
 			{
-				xangle += deltaTime / 2;
-				yangle += deltaTime;
+				xangle = deltaTime / 2;
+				yangle = deltaTime;
+				cube.SetValueX(Matrix4.CreateRotationX(xangle));
+				cube.SetValueY(Matrix4.CreateRotationY(yangle));
 			}
 			if (right)
 			{
 				yangle = deltaTime;
+				
 				cube.SetValueY(Matrix4.CreateRotationY(yangle));
 			}
 			if (left)
@@ -137,16 +169,6 @@ namespace OpenTkExample
 				xangle = -deltaTime;
 				cube.SetValueX(Matrix4.CreateRotationX(xangle));
 			}
-
-			cube.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
-			cube.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, -5), Vector3.Zero, Vector3.UnitY);
-			cube.ModelViewProjectionMatrix = cube.ModelMatrix * cube.ViewMatrix * cube.ViewProjectionMatrix;
-
-			GL.UseProgram(helper.ProgramId);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-			GL.BindBuffer(BufferTarget.ElementArrayBuffer, helper.IBOElements);
-			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indicedata.Length * sizeof(int)), indicedata, BufferUsageHint.StaticDraw);
 
 		}
 
@@ -195,13 +217,61 @@ namespace OpenTkExample
 			{
 				up = false;
 			}
+			if(state.IsKeyDown(Key.Up))
+			{
+
+			}
+			if (state.IsKeyDown(Key.Down))
+			{
+
+			}
+			if (state.IsKeyDown(Key.Right))
+			{
+				xdist = 0.05f;
+				cube.SetTranslation(xdist,'x');
+			}
+			if (state.IsKeyDown(Key.Left))
+			{
+				//xdist -= 0.05f;
+
+				//cube.SetTranslation(-xdist, 'X');
+			}
+
+
+
+
+			if (state.IsKeyDown(Key.Escape))
+			{
+				this.Exit();
+			}
+
 
 
 		}
 
 		private void Mouse_WheelChanged(object sender, MouseWheelEventArgs e)
 		{
-		
+
+			Console.WriteLine(
+				" Whell... Value "+e.Value.ToString()+
+				" Precision " + e.ValuePrecise.ToString()+
+				" Delta " + e.Delta.ToString()+
+				" DeltaPrecision " + e.DeltaPrecise.ToString()
+				);
+
+			// zoom in
+			if(e.DeltaPrecise > 0)
+			{
+				zdist += 0.05f;
+			}
+			// zoom out
+			if(e.DeltaPrecise < 0 )
+			{
+				zdist -= 0.05f;
+			}
+
+
+
 			return;
 		}
 

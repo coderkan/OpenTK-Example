@@ -32,13 +32,53 @@ namespace OpenTkExample
 
 		public override void SetValueX(Matrix4 xVal)
 		{
+			Vector3 pos = Position;
+
+			//ModelMatrix *= Matrix4.CreateTranslation(new Vector3(-pos.X, -pos.Y, -pos.Z)) * xVal * Matrix4.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z));
+
+
+			ModelMatrix *= Matrix4.CreateTranslation(new Vector3(-pos.X, -pos.Y, -pos.Z));
 			ModelMatrix = ModelMatrix * xVal;
+			ModelMatrix *= Matrix4.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z));
+
+
 		}
 		public override void SetValueY(Matrix4 yVal)
 		{
-			ModelMatrix = ModelMatrix * yVal;
-		}
+			Vector3 pos = Position;
 
+			//ModelMatrix *= Matrix4.CreateTranslation(new Vector3(-256, -256, 0));
+			//ModelMatrix = ModelMatrix * yVal;
+			//ModelMatrix *= Matrix4.CreateTranslation(new Vector3(256, 256, 0));
+
+			//ModelMatrix *= Matrix4.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z)) * yVal * Matrix4.CreateTranslation(new Vector3(-pos.X, -pos.Y, -pos.Z));
+			ModelMatrix *= Matrix4.CreateTranslation(new Vector3(-pos.X, -pos.Y, -pos.Z));
+			ModelMatrix = ModelMatrix * yVal;
+			ModelMatrix *= Matrix4.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z));
+
+		}
+		public override void SetTranslation(float trans, char c)
+		{
+			
+			switch (c)
+			{
+				case 'X':
+				case 'x':
+					Vector3 px = new Vector3(trans, 0, 0);
+					ModelMatrix *= Matrix4.CreateTranslation(px);
+					break;
+				case 'Y':
+				case 'y':
+					Vector3 py = new Vector3(0, trans, 0);
+					ModelMatrix *= Matrix4.CreateTranslation(py);
+					break;
+				case 'Z':
+				case 'z':
+					Vector3 pz = new Vector3(0, 0, trans);
+					ModelMatrix *= Matrix4.CreateTranslation(pz);
+					break;
+			}
+		}
 		public void CalcMatrix()
 		{
 			Matrix4 mat = Matrix4.CreateRotationX(Rotation.X) *

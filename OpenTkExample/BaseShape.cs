@@ -31,5 +31,7 @@ namespace OpenTkExample
 		public abstract void SetValueX(Matrix4 xVal);
 		public abstract void SetValueY(Matrix4 yVal);
 
+		public abstract void SetTranslation(float trans, char c);
+
 	}
 }
