@@ -1,10 +1,10 @@
 ﻿using OpenTK;
 using System;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTK.Input;
 
 namespace OpenTkExample
 {
@@ -12,11 +12,22 @@ namespace OpenTkExample
 	{
 		ShaderHelper helper;
 		Cube cube;
+		private static System.Diagnostics.Stopwatch watch;
 		float time = 0.0f;
+		float etime = 0.0f;
+		bool autoRotate = false;
+		private static float xangle, yangle;
+		bool right = false, left = false, up = false, down = false;
+		OpenTK.Input.KeyboardState lastKeystate;
+		float deltaTime = 0.0f;
+	 
+
+
 		public Game():
 			base(512,512,new OpenTK.Graphics.GraphicsMode(32, 24, 0, 4))
 		{
-
+			Mouse.Move += Mouse_Move;
+			Mouse.WheelChanged += Mouse_WheelChanged;
 		}
 		
 
@@ -25,17 +36,23 @@ namespace OpenTkExample
 			base.OnLoad(e);
 			helper = new ShaderHelper(Shaders.VertexShader, Shaders.FragmentShader);
 			cube = new Cube();
-			GL.ClearColor(Color.Blue);
+			cube.Position = new Vector3(0f, 0.0f/*-0.5f-0.5f + (float)Math.Sin(time)*/, 0f);
+			cube.Rotation = new Vector3(0f, 0f, 0f);
+			cube.Scale = new Vector3(1f, 1f, 1f);
+			cube.CalculateModelMatrix();
+			GL.ClearColor(Color.Transparent);
+			watch = System.Diagnostics.Stopwatch.StartNew();
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
+
+
 			base.OnRenderFrame(e);
 
 			GL.Viewport(0, 0, Width, Height);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.Enable(EnableCap.DepthTest);
-
 
 			GL.EnableVertexAttribArray(helper.AttributeVPosition);
 			GL.EnableVertexAttribArray(helper.AttributeVcolor);
@@ -52,6 +69,10 @@ namespace OpenTkExample
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
 		{
+			watch.Stop();
+			deltaTime = (float)watch.ElapsedTicks / System.Diagnostics.Stopwatch.Frequency;
+			watch.Restart();
+
 			base.OnUpdateFrame(e);
 			List<Vector3> verts = new List<Vector3>();
 			List<int> inds = new List<int>();
@@ -84,15 +105,42 @@ namespace OpenTkExample
 				);
 			GL.VertexAttribPointer(helper.AttributeVcolor,3,VertexAttribPointerType.Float,false,0,0);
 
+
 			time += (float)e.Time;
+			etime = (float)e.Time;
 
-			cube.Position = new Vector3(0.3f, -0.5f + (float)Math.Sin(time), -3.0f);
-			cube.Rotation = new Vector3(0.55f * time, 0.25f * time, 0);
-			cube.Scale = new Vector3(0.5f, 0.5f, 0.5f);
 
-			cube.CalculateModelMatrix();
-			cube.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 40.0f);
-			cube.ModelViewProjectionMatrix = cube.ModelMatrix * cube.ViewProjectionMatrix;
+			Inputs();
+			// perform rotation of the cube depending on the keyboard state
+			if (autoRotate)
+			{
+				xangle += deltaTime / 2;
+				yangle += deltaTime;
+			}
+			if (right)
+			{
+				yangle = deltaTime;
+				cube.SetValueY(Matrix4.CreateRotationY(yangle));
+			}
+			if (left)
+			{
+				yangle = -deltaTime;
+				cube.SetValueY(Matrix4.CreateRotationY(yangle));
+			}
+			if (up)
+			{
+				xangle = deltaTime;
+				cube.SetValueX(Matrix4.CreateRotationX(xangle));
+			}
+			if (down)
+			{
+				xangle = -deltaTime;
+				cube.SetValueX(Matrix4.CreateRotationX(xangle));
+			}
+
+			cube.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
+			cube.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, -5), Vector3.Zero, Vector3.UnitY);
+			cube.ModelViewProjectionMatrix = cube.ModelMatrix * cube.ViewMatrix * cube.ViewProjectionMatrix;
 
 			GL.UseProgram(helper.ProgramId);
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -100,13 +148,96 @@ namespace OpenTkExample
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, helper.IBOElements);
 			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indicedata.Length * sizeof(int)), indicedata, BufferUsageHint.StaticDraw);
 
+		}
+
+		private void Inputs()
+		{
+
+			OpenTK.Input.KeyboardState state = OpenTK.Input.Keyboard.GetState();
+
+			if (state.IsKeyDown(Key.Space) && lastKeystate.IsKeyUp(Key.Space))
+			{
+				autoRotate = !autoRotate;
+			}
+			this.lastKeystate = state;
+			if (state.IsKeyDown(Key.A))
+			{
+				left = true;
+			}
+
+			if (state.IsKeyDown(Key.S))
+			{
+				down = true;
+			}
+			if (state.IsKeyDown(Key.D))
+			{
+				right = true;
+			}
+			if (state.IsKeyDown(Key.W))
+			{
+				up = true;
+			}
+
+			if (state.IsKeyUp(Key.A))
+			{
+				left = false;
+			}
+
+			if (state.IsKeyUp(Key.S))
+			{
+				down = false;
+			}
+			if (state.IsKeyUp(Key.D))
+			{
+				right = false;
+			}
+			if (state.IsKeyUp(Key.W))
+			{
+				up = false;
+			}
+
 
 		}
 
+		private void Mouse_WheelChanged(object sender, MouseWheelEventArgs e)
+		{
+		
+			return;
+		}
 
+		private void Mouse_Move(object sender, MouseMoveEventArgs e)
+		{
+			if (OpenTK.Input.Mouse.GetState()[OpenTK.Input.MouseButton.Left])
+			{
 
+				down = up = left = right = false;
 
+				// Move Up
+				if (e.YDelta < 0)
+				{
+					xangle = deltaTime * 2;
+					cube.SetValueX(Matrix4.CreateRotationX(xangle));
+				}
+				// Move Down
+				if (e.YDelta > 0)
+				{
+					xangle = -deltaTime * 2;
+					cube.SetValueX(Matrix4.CreateRotationX(xangle));
+				}
+				// Move Left
+				if (e.XDelta < 0 )
+				{
+					yangle = -deltaTime * 2;
+					cube.SetValueY(Matrix4.CreateRotationY(yangle));
+				}
 
-
+				// Move Right
+				if (e.XDelta > 0)
+				{
+					yangle = deltaTime * 2;
+					cube.SetValueY(Matrix4.CreateRotationY(yangle));
+				}
+			}
+		}
 	}
 }

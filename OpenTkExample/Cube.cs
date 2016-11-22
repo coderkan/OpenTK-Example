@@ -21,24 +21,66 @@ namespace OpenTkExample
 
 		public override void CalculateModelMatrix()
 		{
-			ModelMatrix = Matrix4.Scale(Scale) * 
-				Matrix4.CreateRotationX(Rotation.X) * 
-				Matrix4.CreateRotationY(Rotation.Y) * 
-				Matrix4.CreateRotationZ(Rotation.Z) * 
-				Matrix4.CreateTranslation(Position);
+			ModelMatrix = Matrix4.Scale(Scale) *
+				Matrix4.CreateRotationX(Rotation.X) *
+				Matrix4.CreateRotationY(Rotation.Y) *
+				Matrix4.CreateRotationZ(Rotation.Z) *
+				Matrix4.CreateTranslation(Position) ;
 		}
+
+ 
+
+		public override void SetValueX(Matrix4 xVal)
+		{
+			ModelMatrix = ModelMatrix * xVal;
+		}
+		public override void SetValueY(Matrix4 yVal)
+		{
+			ModelMatrix = ModelMatrix * yVal;
+		}
+
+		public void CalcMatrix()
+		{
+			Matrix4 mat = Matrix4.CreateRotationX(Rotation.X) *
+			Matrix4.CreateRotationY(Rotation.Y) *
+			Matrix4.CreateRotationZ(Rotation.Z);
+			ModelMatrix = mat*ModelViewProjectionMatrix;
+		}
+	
 
 		public override Vector3[] GetColorData()
 		{
 			return new Vector3[] {
+
+				//new Vector3(0f, 1f, 0f),
+				//new Vector3(0f, 1f, 0f),
+				//new Vector3(0f, 1f, 0f),
+				//new Vector3(0f, 1f, 0f),
+				//new Vector3(0f, 1f, 0f),
+				//new Vector3(0f, 1f, 0f),
+				//new Vector3(0f, 1f, 0f),
+				//new Vector3(0f, 1f, 0f)
+				
+
+				//new Vector3(1f, 0f, 0f),
+				//new Vector3( 0f, 0f, 1f),
+				//new Vector3( 0f, 1f, 0f),
+				//new Vector3( 1f, 0f, 0f),
+				//new Vector3( 0f, 0f, 1f),
+				//new Vector3( 0f, 1f, 0f),
+				//new Vector3( 1f, 0f, 0f),
+				//new Vector3( 0f, 0f, 1f)
+
 				new Vector3(1f, 0f, 0f),
-				new Vector3( 0f, 0f, 1f),
-				new Vector3( 0f, 1f, 0f),
+				new Vector3( 1f, 0f, 0f),
+				new Vector3( 1f, 0f, 0f),
 				new Vector3( 1f, 0f, 0f),
 				new Vector3( 0f, 0f, 1f),
 				new Vector3( 0f, 1f, 0f),
 				new Vector3( 1f, 0f, 0f),
 				new Vector3( 0f, 0f, 1f)
+
+
 			};
 		}
 

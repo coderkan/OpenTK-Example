@@ -14,11 +14,11 @@ namespace OpenTkExample
 			"in vec3 vPosition; \n"+
 			"in vec3 vColor;	\n"+
 			"out vec4 color;	\n"+
-			"uniform mat4 modelview; \n"+
-			"void main() \n"+
-			"{ \n"+
+			"uniform mat4 modelview; \n"+ 
+			"void main() \n" +
+			"{ \n"+ 
 			"	gl_Position = modelview * vec4(vPosition,1.0); \n"+
-			"	color = vec4(vColor,1.0);	\n"+
+			"	color = vec4(vColor,1.0);	\n" +
 			"}"
 			;
 
@@ -34,6 +34,18 @@ namespace OpenTkExample
 			;
 
 
+		public static string VertexShaderX =
+			"#version 330 \n" +
+			"in vec3 vPosition; \n" +
+			"in vec3 vColor;	\n" +
+			"out vec4 color;	\n" +
+			"uniform mat4 modelview; \n" +
+			"void main() \n" +
+			"{ \n" +
+			"	gl_Position = modelview * vec4(vPosition,1.0); \n" +
+			"	color = vec4(vColor,1.0);	\n" +
+			"}"
+			;
 
 
 	}
