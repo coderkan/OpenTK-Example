@@ -16,14 +16,8 @@ namespace OpenTkExample
 		{
 			using (Game game = new Game())
 			{
-
 				game.Run(30, 30);
-
 			}
-
-			//Application.EnableVisualStyles();
-			//Application.SetCompatibleTextRenderingDefault(false);
-			//Application.Run(new Form1());
 		}
 	}
 }

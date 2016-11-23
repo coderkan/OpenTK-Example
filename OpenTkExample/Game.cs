@@ -24,13 +24,7 @@ namespace OpenTkExample
 		float xdist = 0.0f;
 		float ydist = 0.0f;
 		float zdist = FISTDISTANCE;
-
-		float horizontalAngle = 3.14f;
-		float verticalAngle = 0.0f;
-
-		Vector3 direction = new Vector3();
-		Vector3 rightDirection = new Vector3();
-
+		
 
 
 		public Game():
@@ -46,7 +40,7 @@ namespace OpenTkExample
 			base.OnLoad(e);
 			helper = new ShaderHelper(Shaders.VertexShader, Shaders.FragmentShader);
 			cube = new Cube();
-			cube.Position = new Vector3(0f, 0.0f/*-0.5f-0.5f + (float)Math.Sin(time)*/, 0f);
+			cube.Position = new Vector3(2f, 2.0f/*-0.5f-0.5f + (float)Math.Sin(time)*/, 0f);
 			cube.Rotation = new Vector3(0f, 0f, 0f);
 			cube.Scale = new Vector3(1f, 1f, 1f);
 			cube.CalculateModelMatrix();
@@ -217,29 +211,26 @@ namespace OpenTkExample
 			{
 				up = false;
 			}
-			if(state.IsKeyDown(Key.Up))
-			{
-
-			}
-			if (state.IsKeyDown(Key.Down))
-			{
-
-			}
 			if (state.IsKeyDown(Key.Right))
 			{
-				xdist = 0.05f;
+				xdist = -0.05f;
 				cube.SetTranslation(xdist,'x');
 			}
 			if (state.IsKeyDown(Key.Left))
 			{
-				//xdist -= 0.05f;
-
-				//cube.SetTranslation(-xdist, 'X');
+				xdist = 0.05f;
+				cube.SetTranslation(xdist, 'X');
 			}
-
-
-
-
+			if (state.IsKeyDown(Key.Up))
+			{
+				ydist = 0.05f;
+				cube.SetTranslation(ydist, 'Y');
+			}
+			if (state.IsKeyDown(Key.Down))
+			{
+				ydist = -0.05f;
+				cube.SetTranslation(ydist, 'Y');
+			}
 			if (state.IsKeyDown(Key.Escape))
 			{
 				this.Exit();
@@ -251,14 +242,6 @@ namespace OpenTkExample
 
 		private void Mouse_WheelChanged(object sender, MouseWheelEventArgs e)
 		{
-
-			Console.WriteLine(
-				" Whell... Value "+e.Value.ToString()+
-				" Precision " + e.ValuePrecise.ToString()+
-				" Delta " + e.Delta.ToString()+
-				" DeltaPrecision " + e.DeltaPrecise.ToString()
-				);
-
 			// zoom in
 			if(e.DeltaPrecise > 0)
 			{
@@ -269,10 +252,6 @@ namespace OpenTkExample
 			{
 				zdist -= 0.05f;
 			}
-
-
-
-			return;
 		}
 
 		private void Mouse_Move(object sender, MouseMoveEventArgs e)
