@@ -29,6 +29,13 @@ namespace OpenTkExample
 			GL.GenBuffers(1, out vboModelView);
 			GL.GenBuffers(1, out iboElements);
 
+			GL.GenBuffers(1, out vboNormal);
+			
+
+
+
+
+
 		}
 
 	}

@@ -12,12 +12,10 @@ namespace OpenTkExample
 
 		public Cube()
 		{
-			this.VecticesCount = 8;
+			this.VerticesCount = 8;
 			this.IndicesCount = 36;
 			this.ColorDataCount = 8;
 		}
-
-
 
 		public override void CalculateModelMatrix()
 		{
@@ -162,6 +160,54 @@ namespace OpenTkExample
 				new Vector3(0.5f, 0.5f,  0.5f),
 				new Vector3(-0.5f, 0.5f,  0.5f),
 			};
+		}
+
+		public override Vector3[] GetNormals()
+		{
+			return new Vector3[]
+			{
+				new Vector3(0f, 0f,  -1),
+				new Vector3(1f, 0f,  0f),
+				new Vector3(0f, 0f,  1f),
+				new Vector3(0f, 1f,  0f),
+				new Vector3(-1f, -1f,  0f),
+				new Vector3(0f, -1f,  0f),
+			};
+
+		}
+
+		public override int[] GetNormalIndices(int offset = 0)
+		{
+			int[] inds = new int[] {
+                //left
+                0, 0, 0,
+				0, 0, 0,
+                //back
+                1, 1, 1,
+				1, 1, 1,
+                //right
+                2, 2, 2,
+				2, 2, 2,
+                //top
+                3, 3, 3,
+				3, 3, 3,
+                //front
+                4, 4, 4,
+				4, 4, 4,
+                //bottom
+                5, 5, 5,
+				5, 5, 5,
+			};
+
+			if (offset != 0)
+			{
+				for (int i = 0; i < inds.Length; i++)
+				{
+					inds[i] += offset;
+				}
+			}
+
+			return inds;
 		}
 	}
 }

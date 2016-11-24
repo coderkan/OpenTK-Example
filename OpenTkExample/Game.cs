@@ -24,7 +24,8 @@ namespace OpenTkExample
 		float xdist = 0.0f;
 		float ydist = 0.0f;
 		float zdist = FISTDISTANCE;
-		
+
+		Light light;
 
 
 		public Game():
@@ -44,6 +45,11 @@ namespace OpenTkExample
 			cube.Rotation = new Vector3(0f, 0f, 0f);
 			cube.Scale = new Vector3(1f, 1f, 1f);
 			cube.CalculateModelMatrix();
+			cube.CalculateNormals();
+
+			light.Position = new Vector3(0,0,-5);
+			light.Intensities = new Vector3(1, 1, 1);
+
 			GL.ClearColor(Color.Transparent);
 			watch = System.Diagnostics.Stopwatch.StartNew();
 		}
@@ -61,12 +67,19 @@ namespace OpenTkExample
 
 			GL.EnableVertexAttribArray(helper.AttributeVPosition);
 			GL.EnableVertexAttribArray(helper.AttributeVcolor);
+			GL.EnableVertexAttribArray(helper.GetAttrib("vertNormal"));
 
 			GL.UniformMatrix4(helper.UniformModelView, false, ref cube.ModelViewProjectionMatrix);
 			GL.DrawElements(BeginMode.Triangles, cube.IndicesCount, DrawElementsType.UnsignedInt, 0);
 
+			helper.SetUniform("light.position", light.Position);
+			helper.SetUniform("light.intensities", light.Intensities);
+
+
+
 			GL.DisableVertexAttribArray(helper.AttributeVPosition);
 			GL.DisableVertexAttribArray(helper.AttributeVcolor);
+			GL.DisableVertexAttribArray(helper.GetAttrib("vertNormal"));
 
 			GL.Flush();
 			SwapBuffers();
@@ -83,17 +96,23 @@ namespace OpenTkExample
 			List<int> inds = new List<int>();
 			List<Vector3> colors = new List<Vector3>();
 
+			List<Vector3> vecs = new List<Vector3>();
+			List<int> normInds = new List<int>();
+
 			int vertCount = 0;
 			verts.AddRange(cube.GetVertex().ToList());
 			inds.AddRange(cube.GetIndices(vertCount).ToList());
 			colors.AddRange(cube.GetColorData().ToList());
+			vecs.AddRange(cube.GetNormals().ToList());
+			normInds.AddRange(cube.GetNormalIndices().ToList());
 
 
 
 			Vector3[] vertdata = verts.ToArray();
 			int[] indicedata = inds.ToArray();
 			Vector3[] coldata = colors.ToArray();
-
+			int[] nInds = normInds.ToArray();
+			Vector3[] normVectors = vecs.ToArray();
 
 			// 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, helper.VBOPosition);
@@ -109,6 +128,18 @@ namespace OpenTkExample
 				BufferUsageHint.StaticDraw
 				);
 			GL.VertexAttribPointer(helper.AttributeVcolor,3,VertexAttribPointerType.Float,false,0,0);
+
+
+			//
+			GL.BindBuffer(BufferTarget.ArrayBuffer, helper.VBONormal);
+			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(cube.Normals.Length * Vector3.SizeInBytes),
+				cube.Normals,
+				BufferUsageHint.StaticDraw
+				);
+			GL.VertexAttribPointer(helper.GetAttrib("vertNormal"), 3, VertexAttribPointerType.Float, false, 0, 0);
+
+
+
 
 
 			time += (float)e.Time;
