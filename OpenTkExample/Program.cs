@@ -14,10 +14,14 @@ namespace OpenTkExample
 		[STAThread]
 		static void Main()
 		{
-			using (Game game = new Game())
+			using (GameSquare game = new GameSquare())
 			{
 				game.Run(30, 30);
 			}
+			//using (Game game = new Game())
+			//{
+			//	game.Run(30, 30);
+			//}
 		}
 	}
 }
