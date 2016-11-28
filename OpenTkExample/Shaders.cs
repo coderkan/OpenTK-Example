@@ -58,42 +58,85 @@ namespace OpenTkExample
 			"	\n" +
 			"}	\n"
 			;
-
+		
 
 		public static string VertexShaderX = 
-			"#version 330 \n"+
-			"in vec3 vPosition; \n"+
-			"in vec3 vColor;	\n"+
-			"out vec4 color;	\n"+ 
-			"uniform mat4 modelview; \n"+ 
-			"void main() \n" +
-			"{ \n"+ 
+			"#version 330			\n"+
+			"in vec3 vPosition;		\n"+
+			"in vec3 vColor;		\n"+
+			"in vec3 vColorLight;	\n"+
+			"out vec4 color;		\n"+ 
+			"out vec4 lightcolor;	\n"+
+			"uniform mat4 modelview;\n"+ 
+			"void main()			\n"+
+			"{						\n"+ 
 			"	gl_Position = modelview * vec4(vPosition,1.0); \n"+
 			"   float _b = vColor[2];	\n" + 
 			"	float _g = vColor[1];	\n"+
 			//"	vColor.x = vColor.x/2;	\n" +
 			//"	vColor.y = vColor.y/2;	\n" +
 			//"	vColor.z = vColor.z/2;	\n" +
-			"	color = vec4(vColor,1.0);	\n" +
-			//"	color[1] = _b*0.8;			\n" +
-			//"	color[2] = _g;				\n" +
+			//"	color = vec4(vColor,1.0);	\n" +
+			//"	lightcolor = vec4(1.0,0.5,1.0,1.0);	\n" +
+			"	lightcolor = vec4(vColorLight,0.5);	\n" +
 			"}"
 			;
 
 
-		public static string FragmentShaderX = 
-			"#version 330				\n"+
-			"in vec4 color;				\n"+
-			"out vec4 outputColor;		\n"+
-			"void main()				\n"+
-			"{							\n "+
+		public static string FragmentShaderX =
+			"#version 330				\n" +
+			"in vec4 color;				\n" +
+			"in vec4 lightcolor;		\n" +
+			"uniform vec3 color1;		\n"+
+			"uniform vec3 color2;		\n"+
+			"out vec4 outputColor;		\n" +
+			"void main()				\n" +
+			"{							\n " +
 			//"	color.x = color.x/2;	\n"+
 			//"	color.y = color.y/2;	\n" +
 			//"	color.z = color.z/2;	\n" +
 			"							\n" +
-			"	outputColor = color;	\n"+
+			"	outputColor = vec4(color1*color2,1.0);	\n" +
+			//"	outputColor = color*lightcolor;	\n" +
 			"}							\n"
 			;
+
+		//*lightcolor
+
+		//public static string VertexShaderX =
+		//	"#version 330 \n" +
+		//	"in vec3 vPosition; \n" +
+		//	"in vec3 vColor;	\n" +
+		//	"out vec4 color;	\n" +
+		//	"uniform mat4 modelview; \n" +
+		//	"void main() \n" +
+		//	"{ \n" +
+		//	"	gl_Position = modelview * vec4(vPosition,1.0); \n" +
+		//	"   float _b = vColor[2];	\n" +
+		//	"	float _g = vColor[1];	\n" +
+		//	//"	vColor.x = vColor.x/2;	\n" +
+		//	//"	vColor.y = vColor.y/2;	\n" +
+		//	//"	vColor.z = vColor.z/2;	\n" +
+		//	"	color = vec4(vColor,1.0);	\n" +
+		//	//"	color[1] = _b*0.8;			\n" +
+		//	//"	color[2] = _g;				\n" +
+		//	"}"
+		//	;
+
+
+		//public static string FragmentShaderX = 
+		//	"#version 330				\n"+
+		//	"in vec4 color;				\n"+
+		//	"out vec4 outputColor;		\n"+
+		//	"void main()				\n"+
+		//	"{							\n "+
+		//	//"	color.x = color.x/2;	\n"+
+		//	//"	color.y = color.y/2;	\n" +
+		//	//"	color.z = color.z/2;	\n" +
+		//	"							\n" +
+		//	"	outputColor = color;	\n"+
+		//	"}							\n"
+		//	;
 
 
 		//layout (location = 0) 

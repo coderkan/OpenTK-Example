@@ -63,6 +63,7 @@ namespace OpenTkExample
 		//int vboPosition, vboColor, vboModelView, iboElements;
 		Triangle triangle;
 		Triangle lamp;
+		Vector3[] lightColor;
 
 		public GameSquare() :
 			base(512, 512, new OpenTK.Graphics.GraphicsMode(32, 24, 0, 4))
@@ -90,10 +91,16 @@ namespace OpenTkExample
 			};
 
 
+
+
 			ncoldata = new Vector3[] {
 				new Vector3( 1f, 0f, 1f),
 				new Vector3( 1f, 0f, 1f),
 				new Vector3( 1f, 0f, 1f)
+			};
+
+			lightColor = new Vector3[] {
+				new Vector3( 1f, 1f, 1f),
 			};
 
 			indsdata = new int[]
@@ -113,7 +120,7 @@ namespace OpenTkExample
 
 
 			lamp = new Triangle(vertdata, coldata);
-			lamp.Position = new Vector3(2f, 2f, -2.0f);
+			lamp.Position = new Vector3(2f, 2f, -4.0f);
 			lamp.Rotation = new Vector3(0f, 0f, 0f);
 			lamp.Scale = new Vector3(1f, 1f, 1f);
 			lamp.CalculateModelMatrix();
@@ -144,7 +151,7 @@ namespace OpenTkExample
 			attribute_vpos = GetAttribLocation("vPosition");
 			attribute_vcol = GetAttribLocation("vColor");
 			uniform_mview = GetUniformLocation("modelview");
-
+			int ff = GetAttribLocation("vColorLight");
 			GL.GenBuffers(1, out vbo_position);
 			GL.GenBuffers(1, out vbo_color);
 			GL.GenBuffers(1, out vbo_mview);
@@ -214,13 +221,13 @@ namespace OpenTkExample
 			GL.UseProgram(programId);
 
 			GL.EnableVertexAttribArray(GetAttribLocation("vPosition"));
-			GL.EnableVertexAttribArray(GetAttribLocation("vColor"));
+			//GL.EnableVertexAttribArray(GetAttribLocation("vColor"));
 
 			GL.UniformMatrix4(GetUniformLocation("modelview"), false, ref triangle.ModelViewProjectionMatrix);
 			GL.DrawArrays(BeginMode.Triangles, 0, 3);
 
 			GL.DisableVertexAttribArray(GetAttribLocation("vPosition"));
-			GL.DisableVertexAttribArray(GetAttribLocation("vColor"));
+			//GL.DisableVertexAttribArray(GetAttribLocation("vColor"));
 
 
 			// 
@@ -231,12 +238,32 @@ namespace OpenTkExample
 				);
 			GL.VertexAttribPointer(GetAttribLocation("vPosition"), 3, VertexAttribPointerType.Float, false, 0, 0);
 
-			GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_color);
-			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
-				triangle.GetColors(),
-				BufferUsageHint.StaticDraw
-				);
-			GL.VertexAttribPointer(GetAttribLocation("vColor"), 3, VertexAttribPointerType.Float, false, 0, 0);
+
+			int objectColorLoc = GL.GetUniformLocation(programId, "color1");
+			int lightColorLoc = GL.GetUniformLocation(programId, "color2");
+			GL.Uniform3(objectColorLoc, 0.0f, 1.0f, 1.0f);
+			GL.Uniform3(lightColorLoc, 1.0f, 1.0f, 1.0f);
+
+			//GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_color);
+			//GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
+			//	triangle.GetColors(),
+			//	BufferUsageHint.StaticDraw
+			//	);
+			//GL.VertexAttribPointer(GetAttribLocation("vColor"), 3, VertexAttribPointerType.Float, false, 0, 0);
+
+
+			//int vbo_lightcolor;
+			//GL.GenBuffers(1, out vbo_lightcolor);
+
+			//GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_lightcolor);
+			//GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(lightColor.Length * Vector3.SizeInBytes),
+			//	lightColor,
+			//	BufferUsageHint.StaticDraw
+			//	);
+			//int ss = GetAttribLocation("vColorLight");
+
+			//GL.VertexAttribPointer(GetAttribLocation("vColorLight"), 1, VertexAttribPointerType.Float, false, 0, 0);
+
 
 			time += (float)e.Time;
 			etime = (float)e.Time;
