@@ -29,13 +29,23 @@ namespace OpenTkExample
 		static float FISTDISTANCE = -5.0f;
 		float xdist = 0.0f;
 		float ydist = 0.0f;
-		float zdist = FISTDISTANCE;
+		float zdist = 2.0f;// FISTDISTANCE + 2;
 
-		Light light;
+		int attribute_vcol;
+		int attribute_vpos;
+		int uniform_mview;
+		int vbo_position;
+		int vbo_color;
+		int vbo_mview;
+		int ibo_elements;
 
-		// // // 
-		int vboPosition, vboColor, vboModelView, iboElements;
-
+ 
+		Vector3[] vertdata;
+		Vector3[] coldata;
+		int[] indsdata;
+		Matrix4[] mviewdata;
+		//int vboPosition, vboColor, vboModelView, iboElements;
+		Triangle triangle;
 
 		public GameSquare() :
 			base(512, 512, new OpenTK.Graphics.GraphicsMode(32, 24, 0, 4))
@@ -48,28 +58,41 @@ namespace OpenTkExample
 		protected override void OnLoad(EventArgs e)
 		{
 			base.OnLoad(e);
-			helper = new ShaderHelper(Shaders.VertexShaderX, Shaders.FragmentShaderX);
-			squareHelper = new ShaderHelper(Shaders.VertexShaderX, Shaders.FragmentShaderX);
+ 
 			init();
-			cube = new Cube();
-			cube.Position = new Vector3(2f, 2.0f/*-0.5f-0.5f + (float)Math.Sin(time)*/, 0f);
-			cube.Rotation = new Vector3(0f, 0f, 0f);
-			cube.Scale = new Vector3(1f, 1f, 1f);
-			cube.CalculateModelMatrix();
-			cube.CalculateNormals();
 
-			light.Position = new Vector3(0, 0, -5);
-			light.Intensities = new Vector3(1, 1, 1);
-
-			square = new Square();
-			square.Position = new Vector3(2f, 2.0f, 0f);
-			square.Rotation = new Vector3(0f, 0f, 0f);
-			square.Scale = new Vector3(1f, 1f, 1f);
-			square.CalculateModelMatrix();
+			vertdata = new Vector3[] { new Vector3(-0.8f, -0.8f, 0f),
+				new Vector3( 0.8f, -0.8f, 0f),
+				new Vector3( 0f,  0.8f, 0f)};
 
 
+			coldata = new Vector3[] {
+				new Vector3( 0f, 0f, 1f),
+				new Vector3( 0f, 0f, 1f),
+				new Vector3( 0f, 0f, 1f)
+			};
 
-			GL.ClearColor(Color.Transparent);
+			indsdata = new int[]
+			{
+				0,1,2
+			};
+
+			mviewdata = new Matrix4[]{
+				Matrix4.Identity
+			};
+
+			triangle = new Triangle(vertdata, coldata);
+			triangle.Position = new Vector3(0f, 0f, -2.0f);
+			triangle.Rotation = new Vector3(0f, 0f, 0f);
+			triangle.Scale = new Vector3(1f, 1f, 1f);
+			triangle.CalculateModelMatrix();
+		 
+
+
+
+
+
+			GL.ClearColor(Color.Red);
 			watch = System.Diagnostics.Stopwatch.StartNew();
 		}
 
@@ -88,11 +111,15 @@ namespace OpenTkExample
 			GL.LinkProgram(programId);
 
 
-			GL.GenBuffers(1, out vboPosition);
-			GL.GenBuffers(1, out vboColor);
-			GL.GenBuffers(1, out vboModelView);
-			GL.GenBuffers(1, out iboElements);
+			attribute_vpos = GetAttribLocation("vPosition");
+			attribute_vcol = GetAttribLocation("vColor");
+			uniform_mview = GetUniformLocation("modelview");
 
+
+			GL.GenBuffers(1, out vbo_position);
+			GL.GenBuffers(1, out vbo_color);
+			GL.GenBuffers(1, out vbo_mview);
+			GL.GenBuffers(1, out ibo_elements);
 
 		}
 
@@ -128,21 +155,16 @@ namespace OpenTkExample
 			GL.Viewport(0, 0, Width, Height);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.Enable(EnableCap.DepthTest);
-			GL.Enable(EnableCap.CullFace);
+			//GL.Enable(EnableCap.CullFace); //  
 
 			GL.EnableVertexAttribArray(GetAttribLocation("vPosition"));
 			GL.EnableVertexAttribArray(GetAttribLocation("vColor"));
 
-
-			GL.UniformMatrix4(GetUniformLocation("modelview"), false, ref square.ModelViewProjectionMatrix);
-			GL.DrawElements(BeginMode.Triangles, square.IndicesCount, DrawElementsType.UnsignedInt, 0);
- 
+			GL.UniformMatrix4(GetUniformLocation("modelview"), false, ref triangle.ModelViewProjectionMatrix);
+			GL.DrawArrays(BeginMode.Triangles, 0, 3);
 
 			GL.DisableVertexAttribArray(GetAttribLocation("vPosition"));
 			GL.DisableVertexAttribArray(GetAttribLocation("vColor"));
-
-
-
 
 			GL.Flush();
 			SwapBuffers();
@@ -156,34 +178,17 @@ namespace OpenTkExample
 
 			base.OnUpdateFrame(e);
 
-
-
-			List<Vector3> squareverts = new List<Vector3>();
-			List<int> squareinds = new List<int>();
-			List<Vector3> squarecolors = new List<Vector3>();
-
-			int vertCount = 0;
-
-			squareverts.AddRange(square.GetVertex().ToList());
-			squareinds.AddRange(square.GetIndices(vertCount).ToList());
-			squarecolors.AddRange(square.GetColorData().ToList());
-
-			// Square
-			Vector3[] squarevertdata = squareverts.ToArray();
-			int[] squareindicedata = squareinds.ToArray();
-			Vector3[] squarecoldata = squarecolors.ToArray();
-
 			// 
-			GL.BindBuffer(BufferTarget.ArrayBuffer, vboPosition);
-			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(squarevertdata.Length * Vector3.SizeInBytes),
-				squarevertdata,
+			GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_position);
+			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(vertdata.Length * Vector3.SizeInBytes),
+				vertdata,
 				BufferUsageHint.StaticDraw
 				);
 			GL.VertexAttribPointer(GetAttribLocation("vPosition"), 3, VertexAttribPointerType.Float, false, 0, 0);
 
-			GL.BindBuffer(BufferTarget.ArrayBuffer, vboColor);
-			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(squarecoldata.Length * Vector3.SizeInBytes),
-				squarecoldata,
+			GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_color);
+			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(coldata.Length * Vector3.SizeInBytes),
+				coldata,
 				BufferUsageHint.StaticDraw
 				);
 			GL.VertexAttribPointer(GetAttribLocation("vColor"), 3, VertexAttribPointerType.Float, false, 0, 0);
@@ -193,19 +198,12 @@ namespace OpenTkExample
 
 			Inputs();
 			Sides();
-
-
-			square.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
-			square.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
-			square.ModelViewProjectionMatrix = square.ModelMatrix * square.ViewMatrix * square.ViewProjectionMatrix;
-
+		
+			triangle.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
+			triangle.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
+			triangle.ModelViewProjectionMatrix = triangle.ModelMatrix * triangle.ViewMatrix * triangle.ViewProjectionMatrix;
 
 			GL.UseProgram(programId);
-
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-			GL.BindBuffer(BufferTarget.ElementArrayBuffer, iboElements);
-			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(squareindicedata.Length * sizeof(int)), squareindicedata, BufferUsageHint.StaticDraw);
-
 
 		}
 
@@ -218,29 +216,30 @@ namespace OpenTkExample
 			{
 				xangle = deltaTime / 2;
 				yangle = deltaTime;
-				cube.SetValueX(Matrix4.CreateRotationX(xangle));
-				cube.SetValueY(Matrix4.CreateRotationY(yangle));
+				triangle.SetValueX(Matrix4.CreateRotationX(xangle));
+				triangle.SetValueY(Matrix4.CreateRotationY(yangle));
 			}
 			if (right)
 			{
 				yangle = deltaTime;
 
-				cube.SetValueY(Matrix4.CreateRotationY(yangle));
+				triangle.SetValueY(Matrix4.CreateRotationY(yangle));
 			}
 			if (left)
 			{
 				yangle = -deltaTime;
-				cube.SetValueY(Matrix4.CreateRotationY(yangle));
+				triangle.SetValueY(Matrix4.CreateRotationY(yangle));
+				Console.WriteLine("Left");
 			}
 			if (up)
 			{
 				xangle = deltaTime;
-				cube.SetValueX(Matrix4.CreateRotationX(xangle));
+				triangle.SetValueX(Matrix4.CreateRotationX(xangle));
 			}
 			if (down)
 			{
 				xangle = -deltaTime;
-				cube.SetValueX(Matrix4.CreateRotationX(xangle));
+				triangle.SetValueX(Matrix4.CreateRotationX(xangle));
 			}
 
 		}
@@ -292,23 +291,23 @@ namespace OpenTkExample
 			}
 			if (state.IsKeyDown(Key.Right))
 			{
-				xdist = -0.05f;
-				cube.SetTranslation(xdist, 'x');
+				xdist = 0.05f;
+				triangle.SetTranslation(xdist, 'X');
 			}
 			if (state.IsKeyDown(Key.Left))
 			{
-				xdist = 0.05f;
-				cube.SetTranslation(xdist, 'X');
+				xdist = -0.05f;
+				triangle.SetTranslation(xdist, 'X');
 			}
 			if (state.IsKeyDown(Key.Up))
 			{
 				ydist = 0.05f;
-				cube.SetTranslation(ydist, 'Y');
+				triangle.SetTranslation(ydist, 'Y');
 			}
 			if (state.IsKeyDown(Key.Down))
 			{
 				ydist = -0.05f;
-				cube.SetTranslation(ydist, 'Y');
+				triangle.SetTranslation(ydist, 'Y');
 			}
 			if (state.IsKeyDown(Key.Escape))
 			{
@@ -344,26 +343,26 @@ namespace OpenTkExample
 				if (e.YDelta < 0)
 				{
 					xangle = deltaTime * 2;
-					cube.SetValueX(Matrix4.CreateRotationX(xangle));
+					triangle.SetValueX(Matrix4.CreateRotationX(xangle));
 				}
 				// Move Down
 				if (e.YDelta > 0)
 				{
 					xangle = -deltaTime * 2;
-					cube.SetValueX(Matrix4.CreateRotationX(xangle));
+					triangle.SetValueX(Matrix4.CreateRotationX(xangle));
 				}
 				// Move Left
 				if (e.XDelta < 0)
 				{
 					yangle = -deltaTime * 2;
-					cube.SetValueY(Matrix4.CreateRotationY(yangle));
+					triangle.SetValueY(Matrix4.CreateRotationY(yangle));
 				}
 
 				// Move Right
 				if (e.XDelta > 0)
 				{
 					yangle = deltaTime * 2;
-					cube.SetValueY(Matrix4.CreateRotationY(yangle));
+					triangle.SetValueY(Matrix4.CreateRotationY(yangle));
 				}
 			}
 		}

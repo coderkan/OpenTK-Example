@@ -67,6 +67,7 @@
     <Compile Include="Shaders.cs" />
     <Compile Include="Square\Shape.cs" />
     <Compile Include="Square\Square.cs" />
+    <Compile Include="Triangle.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
