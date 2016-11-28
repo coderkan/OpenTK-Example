@@ -69,21 +69,56 @@ namespace OpenTkExample
 			"void main() \n" +
 			"{ \n"+ 
 			"	gl_Position = modelview * vec4(vPosition,1.0); \n"+
+			"   float _b = vColor[2];	\n" + 
+			"	float _g = vColor[1];	\n"+
+			//"	vColor.x = vColor.x/2;	\n" +
+			//"	vColor.y = vColor.y/2;	\n" +
+			//"	vColor.z = vColor.z/2;	\n" +
 			"	color = vec4(vColor,1.0);	\n" +
+			//"	color[1] = _b*0.8;			\n" +
+			//"	color[2] = _g;				\n" +
 			"}"
 			;
 
 
 		public static string FragmentShaderX = 
-			"#version 330	\n"+
-			"in vec4 color;	\n"+
-			"out vec4 outputColor;"+
-			"void main()	\n"+
-			"{	\n"+
+			"#version 330				\n"+
+			"in vec4 color;				\n"+
+			"out vec4 outputColor;		\n"+
+			"void main()				\n"+
+			"{							\n "+
+			//"	color.x = color.x/2;	\n"+
+			//"	color.y = color.y/2;	\n" +
+			//"	color.z = color.z/2;	\n" +
+			"							\n" +
 			"	outputColor = color;	\n"+
-			"}	\n"
+			"}							\n"
 			;
 
+
+		//layout (location = 0) 
+
+		public static string VertexLight =
+			"#version 330	\n" +
+			"layout (location = 0) in vec3 position;	\n"+
+			"uniform mat4 model;	\n" +
+			"uniform mat4 view;	\n" +
+			"uniform mat4 projection;	\n" +
+			"uniform mat4 modelview;	\n"+
+			"void main()		\n" +
+			"{	\n" +
+			"	gl_Position = modelview * vec4(position,1.0); \n" +
+			//"	gl_Position = lprojection * lview * lmodel * vec4(lposition,1.0f);	\n" +
+			"}	\n" 
+			;
+		public static string FragmentLight =
+			"#version 330	\n" +
+			"out vec4 color;	\n" +
+			"void main()	\n" +
+			"{	\n" +
+			"	color = vec4(1.0f);	\n" +
+			"}	\n"
+			;
 
 		public static string VertexShaderXY =
 			"#version 330 \n" +
@@ -97,6 +132,8 @@ namespace OpenTkExample
 			"	color = vec4(vColor,1.0);	\n" +
 			"}"
 			;
+
+
 
 
 	}

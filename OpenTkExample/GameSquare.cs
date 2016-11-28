@@ -17,6 +17,7 @@ namespace OpenTkExample
 		Square square;
 
 		int programId;
+		int programIdLight;
 
 		private static System.Diagnostics.Stopwatch watch;
 		float time = 0.0f;
@@ -39,7 +40,21 @@ namespace OpenTkExample
 		int vbo_mview;
 		int ibo_elements;
 
- 
+		// Lights
+		int lattribute_vcol;
+		int lattribute_vpos;
+		int luniform_mview;
+		int lvbo_position;
+		int lvbo_color;
+		int lvbo_mview;
+		int libo_elements;
+		Vector3[] lvertdata;
+		Vector3[] lcoldata;
+		Vector3[] lncoldata;
+		int[] lindsdata;
+		Matrix4[] lmviewdata;
+
+
 		Vector3[] vertdata;
 		Vector3[] coldata;
 		Vector3[] ncoldata;
@@ -47,6 +62,7 @@ namespace OpenTkExample
 		Matrix4[] mviewdata;
 		//int vboPosition, vboColor, vboModelView, iboElements;
 		Triangle triangle;
+		Triangle lamp;
 
 		public GameSquare() :
 			base(512, 512, new OpenTK.Graphics.GraphicsMode(32, 24, 0, 4))
@@ -61,7 +77,7 @@ namespace OpenTkExample
 			base.OnLoad(e);
  
 			init();
-
+			initLight();
 			vertdata = new Vector3[] { new Vector3(-0.8f, -0.8f, 0f),
 				new Vector3( 0.8f, -0.8f, 0f),
 				new Vector3( 0f,  0.8f, 0f)};
@@ -94,7 +110,14 @@ namespace OpenTkExample
 			triangle.Rotation = new Vector3(0f, 0f, 0f);
 			triangle.Scale = new Vector3(1f, 1f, 1f);
 			triangle.CalculateModelMatrix();
-		 
+
+
+			lamp = new Triangle(vertdata, coldata);
+			lamp.Position = new Vector3(2f, 2f, -2.0f);
+			lamp.Rotation = new Vector3(0f, 0f, 0f);
+			lamp.Scale = new Vector3(1f, 1f, 1f);
+			lamp.CalculateModelMatrix();
+
 
 
 
@@ -114,7 +137,6 @@ namespace OpenTkExample
 			}
 			int vertexShaderId = LoadShader(programId, Shaders.VertexShaderX, ShaderType.VertexShader);
 			int fragmentShaderId = LoadShader(programId, Shaders.FragmentShaderX, ShaderType.FragmentShader);
-
 			// Link Program
 			GL.LinkProgram(programId);
 
@@ -123,11 +145,30 @@ namespace OpenTkExample
 			attribute_vcol = GetAttribLocation("vColor");
 			uniform_mview = GetUniformLocation("modelview");
 
-
 			GL.GenBuffers(1, out vbo_position);
 			GL.GenBuffers(1, out vbo_color);
 			GL.GenBuffers(1, out vbo_mview);
 			GL.GenBuffers(1, out ibo_elements);
+
+		}
+		private void initLight()
+		{
+			programIdLight = GL.CreateProgram();
+			if(programIdLight == 0)
+			{
+				Console.WriteLine("Error Creating ProgramId For Light " + programIdLight);
+				return;
+			}
+			int vertexShaderId = LoadShader(programIdLight, Shaders.VertexLight, ShaderType.VertexShader);
+			int fragmentShaderId = LoadShader(programIdLight, Shaders.FragmentLight, ShaderType.FragmentShader);
+
+			GL.LinkProgram(programIdLight);
+
+			lattribute_vpos = GL.GetAttribLocation(programIdLight, "position");
+			luniform_mview = GL.GetUniformLocation(programIdLight, "modelview");
+
+			GL.GenBuffers(programIdLight, out lvbo_position);
+			GL.GenBuffers(programIdLight, out lvbo_mview);
 
 		}
 
@@ -157,6 +198,11 @@ namespace OpenTkExample
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
 
+			watch.Stop();
+			deltaTime = (float)watch.ElapsedTicks / System.Diagnostics.Stopwatch.Frequency;
+			watch.Restart();
+
+
 
 			base.OnRenderFrame(e);
 
@@ -164,6 +210,8 @@ namespace OpenTkExample
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.Enable(EnableCap.DepthTest);
 			//GL.Enable(EnableCap.CullFace); //  
+
+			GL.UseProgram(programId);
 
 			GL.EnableVertexAttribArray(GetAttribLocation("vPosition"));
 			GL.EnableVertexAttribArray(GetAttribLocation("vColor"));
@@ -174,17 +222,6 @@ namespace OpenTkExample
 			GL.DisableVertexAttribArray(GetAttribLocation("vPosition"));
 			GL.DisableVertexAttribArray(GetAttribLocation("vColor"));
 
-			GL.Flush();
-			SwapBuffers();
-		}
-
-		protected override void OnUpdateFrame(FrameEventArgs e)
-		{
-			watch.Stop();
-			deltaTime = (float)watch.ElapsedTicks / System.Diagnostics.Stopwatch.Frequency;
-			watch.Restart();
-
-			base.OnUpdateFrame(e);
 
 			// 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_position);
@@ -206,14 +243,84 @@ namespace OpenTkExample
 
 			Inputs();
 			Sides();
-		
+
 			triangle.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
 			triangle.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
 			triangle.ModelViewProjectionMatrix = triangle.ModelMatrix * triangle.ViewMatrix * triangle.ViewProjectionMatrix;
 
-			GL.UseProgram(programId);
 
+			GL.UseProgram(programIdLight);
+
+
+			int s = GL.GetAttribLocation(programIdLight, "position"); //GetAttribLocation("position");
+			if (s == -1)
+				Console.WriteLine("Attrib is not created.");
+			GL.EnableVertexAttribArray(s);
+			int uniform = GL.GetUniformLocation(programIdLight,"modelview");
+
+			if (uniform == -1)
+				Console.WriteLine("Attrib is not created.");
+
+			GL.UniformMatrix4(uniform, false, ref lamp.ModelViewProjectionMatrix);
+			GL.DrawArrays(BeginMode.Triangles, 0, 3);
+
+			GL.DisableVertexAttribArray(s);
+
+
+			GL.BindBuffer(BufferTarget.ArrayBuffer, lvbo_position);
+			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(lamp.GetVertex().Length * Vector3.SizeInBytes), lamp.GetVertex(), BufferUsageHint.StaticDraw);
+			GL.VertexAttribPointer(GL.GetAttribLocation(programIdLight,"position"), 3, VertexAttribPointerType.Float, false, 0, 0);
+			// 
+
+
+			lamp.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
+			lamp.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
+			lamp.ModelViewProjectionMatrix = lamp.ModelMatrix * lamp.ViewMatrix * lamp.ViewProjectionMatrix;
+
+
+
+
+
+			GL.Flush();
+			SwapBuffers();
 		}
+
+		//protected override void OnUpdateFrame(FrameEventArgs e)
+		//{
+		//	watch.Stop();
+		//	deltaTime = (float)watch.ElapsedTicks / System.Diagnostics.Stopwatch.Frequency;
+		//	watch.Restart();
+
+		//	base.OnUpdateFrame(e);
+
+		//	// 
+		//	GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_position);
+		//	GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(vertdata.Length * Vector3.SizeInBytes),
+		//		vertdata,
+		//		BufferUsageHint.StaticDraw
+		//		);
+		//	GL.VertexAttribPointer(GetAttribLocation("vPosition"), 3, VertexAttribPointerType.Float, false, 0, 0);
+
+		//	GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_color);
+		//	GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
+		//		triangle.GetColors(),
+		//		BufferUsageHint.StaticDraw
+		//		);
+		//	GL.VertexAttribPointer(GetAttribLocation("vColor"), 3, VertexAttribPointerType.Float, false, 0, 0);
+
+		//	time += (float)e.Time;
+		//	etime = (float)e.Time;
+
+		//	Inputs();
+		//	Sides();
+		
+		//	triangle.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
+		//	triangle.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
+		//	triangle.ModelViewProjectionMatrix = triangle.ModelMatrix * triangle.ViewMatrix * triangle.ViewProjectionMatrix;
+
+		//	GL.UseProgram(programId);
+			
+		//}
 
 
 
