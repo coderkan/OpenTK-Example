@@ -58,6 +58,7 @@ namespace OpenTkExample
 		Vector3[] vertdata;
 		Vector3[] coldata;
 		Vector3[] ncoldata;
+		Vector3[] normaldata;
 		int[] indsdata;
 		Matrix4[] mviewdata;
 		//int vboPosition, vboColor, vboModelView, iboElements;
@@ -72,6 +73,31 @@ namespace OpenTkExample
 			Mouse.WheelChanged += Mouse_WheelChanged;
 		}
 
+		public Vector3[] CalculateNormals(Vector3[] verts)
+		{
+			Vector3[] normals = new Vector3[verts.Length];
+			int[] inds = new int[] { 0, 1, 2 };
+			for (int i = 0; i < inds.Length; i += 3)
+			{
+				Vector3 v1 = verts[inds[i]];
+				Vector3 v2 = verts[inds[i + 1]];
+				Vector3 v3 = verts[inds[i + 2]];
+
+				normals[inds[i]] += Vector3.Cross(v2 - v1, v3 - v1);
+				normals[inds[i + 1]] += Vector3.Cross(v2 - v1, v3 - v1);
+				normals[inds[i + 2]] += Vector3.Cross(v2 - v1, v3 - v1);
+			}
+			for (int i = 0; i < normals.Length; i++)
+			{
+				normals[i] = normals[i].Normalized();
+			}
+			for(int j = 0; j < normals.Length; j++)
+			{
+				Console.WriteLine("X : " + normals[j].X + " Y : "+ normals[j].Y + " Z : " + normals[j].Z );
+			}
+			//Normals = normals;
+			return normals;
+		}
 
 		protected override void OnLoad(EventArgs e)
 		{
@@ -90,6 +116,8 @@ namespace OpenTkExample
 				new Vector3( 0f, 0f, 1f)
 			};
 
+
+			normaldata = CalculateNormals(vertdata);
 
 
 
@@ -111,6 +139,9 @@ namespace OpenTkExample
 			mviewdata = new Matrix4[]{
 				Matrix4.Identity
 			};
+
+
+
 
 			triangle = new Triangle(vertdata, coldata);
 			triangle.Position = new Vector3(0f, 0f, -2.0f);
@@ -216,20 +247,14 @@ namespace OpenTkExample
 			GL.Viewport(0, 0, Width, Height);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.Enable(EnableCap.DepthTest);
-			//GL.Enable(EnableCap.CullFace); //  
+
 
 			GL.UseProgram(programId);
 
 			GL.EnableVertexAttribArray(GetAttribLocation("vPosition"));
-			//GL.EnableVertexAttribArray(GetAttribLocation("vColor"));
-
 			GL.UniformMatrix4(GetUniformLocation("modelview"), false, ref triangle.ModelViewProjectionMatrix);
 			GL.DrawArrays(BeginMode.Triangles, 0, 3);
-
 			GL.DisableVertexAttribArray(GetAttribLocation("vPosition"));
-			//GL.DisableVertexAttribArray(GetAttribLocation("vColor"));
-
-
 			// 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_position);
 			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(vertdata.Length * Vector3.SizeInBytes),
@@ -238,31 +263,23 @@ namespace OpenTkExample
 				);
 			GL.VertexAttribPointer(GetAttribLocation("vPosition"), 3, VertexAttribPointerType.Float, false, 0, 0);
 
+			int nrmls;
+			GL.GenBuffers(1, out nrmls);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, nrmls);
+			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(normaldata.Length * Vector3.SizeInBytes),			normaldata,
+				BufferUsageHint.StaticDraw);
+			GL.VertexAttribPointer(GetAttribLocation("vNormal"), 3, VertexAttribPointerType.Float, false, 0, 0);
+			GL.EnableVertexAttribArray(GL.GetAttribLocation(programId, "vNormal"));
+			GL.BindVertexArray(0);
+
+
 
 			int objectColorLoc = GL.GetUniformLocation(programId, "color1");
 			int lightColorLoc = GL.GetUniformLocation(programId, "color2");
 			GL.Uniform3(objectColorLoc, 0.0f, 1.0f, 1.0f);
 			GL.Uniform3(lightColorLoc, 1.0f, 1.0f, 1.0f);
 
-			//GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_color);
-			//GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
-			//	triangle.GetColors(),
-			//	BufferUsageHint.StaticDraw
-			//	);
-			//GL.VertexAttribPointer(GetAttribLocation("vColor"), 3, VertexAttribPointerType.Float, false, 0, 0);
-
-
-			//int vbo_lightcolor;
-			//GL.GenBuffers(1, out vbo_lightcolor);
-
-			//GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_lightcolor);
-			//GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(lightColor.Length * Vector3.SizeInBytes),
-			//	lightColor,
-			//	BufferUsageHint.StaticDraw
-			//	);
-			//int ss = GetAttribLocation("vColorLight");
-
-			//GL.VertexAttribPointer(GetAttribLocation("vColorLight"), 1, VertexAttribPointerType.Float, false, 0, 0);
+ 
 
 
 			time += (float)e.Time;
@@ -304,52 +321,9 @@ namespace OpenTkExample
 			lamp.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
 			lamp.ModelViewProjectionMatrix = lamp.ModelMatrix * lamp.ViewMatrix * lamp.ViewProjectionMatrix;
 
-
-
-
-
 			GL.Flush();
 			SwapBuffers();
 		}
-
-		//protected override void OnUpdateFrame(FrameEventArgs e)
-		//{
-		//	watch.Stop();
-		//	deltaTime = (float)watch.ElapsedTicks / System.Diagnostics.Stopwatch.Frequency;
-		//	watch.Restart();
-
-		//	base.OnUpdateFrame(e);
-
-		//	// 
-		//	GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_position);
-		//	GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(vertdata.Length * Vector3.SizeInBytes),
-		//		vertdata,
-		//		BufferUsageHint.StaticDraw
-		//		);
-		//	GL.VertexAttribPointer(GetAttribLocation("vPosition"), 3, VertexAttribPointerType.Float, false, 0, 0);
-
-		//	GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_color);
-		//	GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
-		//		triangle.GetColors(),
-		//		BufferUsageHint.StaticDraw
-		//		);
-		//	GL.VertexAttribPointer(GetAttribLocation("vColor"), 3, VertexAttribPointerType.Float, false, 0, 0);
-
-		//	time += (float)e.Time;
-		//	etime = (float)e.Time;
-
-		//	Inputs();
-		//	Sides();
-		
-		//	triangle.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
-		//	triangle.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
-		//	triangle.ModelViewProjectionMatrix = triangle.ModelMatrix * triangle.ViewMatrix * triangle.ViewProjectionMatrix;
-
-		//	GL.UseProgram(programId);
-			
-		//}
-
-
 
 		private void Sides()
 		{

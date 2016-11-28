@@ -58,48 +58,98 @@ namespace OpenTkExample
 			"	\n" +
 			"}	\n"
 			;
-		
 
-		public static string VertexShaderX = 
-			"#version 330			\n"+
-			"in vec3 vPosition;		\n"+
-			"in vec3 vColor;		\n"+
-			"in vec3 vColorLight;	\n"+
-			"out vec4 color;		\n"+ 
-			"out vec4 lightcolor;	\n"+
-			"uniform mat4 modelview;\n"+ 
-			"void main()			\n"+
-			"{						\n"+ 
-			"	gl_Position = modelview * vec4(vPosition,1.0); \n"+
-			"   float _b = vColor[2];	\n" + 
-			"	float _g = vColor[1];	\n"+
-			//"	vColor.x = vColor.x/2;	\n" +
-			//"	vColor.y = vColor.y/2;	\n" +
-			//"	vColor.z = vColor.z/2;	\n" +
-			//"	color = vec4(vColor,1.0);	\n" +
-			//"	lightcolor = vec4(1.0,0.5,1.0,1.0);	\n" +
-			"	lightcolor = vec4(vColorLight,0.5);	\n" +
-			"}"
+
+		public static string VertexShaderX =
+			"#version 330			\n" +
+			"in vec3 vPosition;		\n" +
+			"in vec3 vNormal;		\n" +
+	
+			"out vec3 Normal;		\n" +
+			"out vec3 FragPos;		\n" +
+			"uniform mat4 modelview;\n" +
+			"uniform mat4 model;	\n" + 
+			"void main()			\n" +
+			"{						\n" +
+			"	gl_Position = modelview * vec4(vPosition,1.0);	\n" +
+			"   FragPos = vec3(model* vec4(vPosition,1.0f));		\n" +
+			"	Normal = mat3(transpose(inverse(model))) * vNormal; \n" +
+			"}						\n"
 			;
 
 
 		public static string FragmentShaderX =
 			"#version 330				\n" +
-			"in vec4 color;				\n" +
-			"in vec4 lightcolor;		\n" +
-			"uniform vec3 color1;		\n"+
-			"uniform vec3 color2;		\n"+
-			"out vec4 outputColor;		\n" +
+			"out vec4 color;			\n" +
+			"in vec3 FragPos;			\n" +
+			"in vec3 Normal;			\n" +	
+			"uniform vec3 lightPos;		\n" +
+			"uniform vec3 viewPos;		\n" +
+			"uniform vec3 lightColor;	\n" +
+			"uniform vec3 objectColor;	\n" +
 			"void main()				\n" +
-			"{							\n " +
-			//"	color.x = color.x/2;	\n"+
-			//"	color.y = color.y/2;	\n" +
-			//"	color.z = color.z/2;	\n" +
-			"							\n" +
-			"	outputColor = vec4(color1*color2,1.0);	\n" +
-			//"	outputColor = color*lightcolor;	\n" +
+			"{							\n" +
+			// Ambient
+			"	float ambientStrength = 0.1f;	\n" +
+			"	vec3 ambient = ambientStrength * lightColor;	\n" +
+			// Diffuse
+			"	vec3 norm = normalize(Normal);	\n" +
+			"	vec3 lightDir = normalize(lightPos - FragPos);	\n" +
+			"	float diff = max(dot(norm,lightDir),0.0);		\n" +
+			"	vec3 diffuse = diff * lightColor;				\n" +
+			// Specular
+			"	float specularStrength = 0.5f;					\n" +
+			"	vec3 viewDir = normalize(viewPos - FragPos);	\n" +
+			"	vec3 reflectDir = reflect(-lightDir,norm);		\n" +
+			"	float spec = pow(max(dot(viewDir,reflectDir),0.0),32);	\n" +
+			"	vec3 specular = specularStrength * spec * lightColor;	\n"+
+			// Result
+			"	vec3 result = (ambient + diffuse + specular) * objectColor; \n" +
+			"	color = vec4(result,1.0f);									\n" +
 			"}							\n"
 			;
+
+		// basic light
+		//public static string VertexShaderX = 
+		//	"#version 330			\n"+
+		//	"in vec3 vPosition;		\n"+
+		//	"in vec3 vColor;		\n"+
+		//	"in vec3 vColorLight;	\n"+
+		//	"out vec4 color;		\n"+ 
+		//	"out vec4 lightcolor;	\n"+
+		//	"uniform mat4 modelview;\n"+ 
+		//	"void main()			\n"+
+		//	"{						\n"+ 
+		//	"	gl_Position = modelview * vec4(vPosition,1.0); \n"+
+		//	"   float _b = vColor[2];	\n" + 
+		//	"	float _g = vColor[1];	\n"+
+		//	//"	vColor.x = vColor.x/2;	\n" +
+		//	//"	vColor.y = vColor.y/2;	\n" +
+		//	//"	vColor.z = vColor.z/2;	\n" +
+		//	//"	color = vec4(vColor,1.0);	\n" +
+		//	//"	lightcolor = vec4(1.0,0.5,1.0,1.0);	\n" +
+		//	"	lightcolor = vec4(vColorLight,0.5);	\n" +
+		//	"}"
+		//	;
+
+
+		//public static string FragmentShaderX =
+		//	"#version 330				\n" +
+		//	"in vec4 color;				\n" +
+		//	"in vec4 lightcolor;		\n" +
+		//	"uniform vec3 color1;		\n"+
+		//	"uniform vec3 color2;		\n"+
+		//	"out vec4 outputColor;		\n" +
+		//	"void main()				\n" +
+		//	"{							\n " +
+		//	//"	color.x = color.x/2;	\n"+
+		//	//"	color.y = color.y/2;	\n" +
+		//	//"	color.z = color.z/2;	\n" +
+		//	"							\n" +
+		//	"	outputColor = vec4(color1*color2,1.0);	\n" +
+		//	//"	outputColor = color*lightcolor;	\n" +
+		//	"}							\n"
+		//	;
 
 		//*lightcolor
 
