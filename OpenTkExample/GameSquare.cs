@@ -42,6 +42,7 @@ namespace OpenTkExample
  
 		Vector3[] vertdata;
 		Vector3[] coldata;
+		Vector3[] ncoldata;
 		int[] indsdata;
 		Matrix4[] mviewdata;
 		//int vboPosition, vboColor, vboModelView, iboElements;
@@ -70,6 +71,13 @@ namespace OpenTkExample
 				new Vector3( 0f, 0f, 1f),
 				new Vector3( 0f, 0f, 1f),
 				new Vector3( 0f, 0f, 1f)
+			};
+
+
+			ncoldata = new Vector3[] {
+				new Vector3( 1f, 0f, 1f),
+				new Vector3( 1f, 0f, 1f),
+				new Vector3( 1f, 0f, 1f)
 			};
 
 			indsdata = new int[]
@@ -187,8 +195,8 @@ namespace OpenTkExample
 			GL.VertexAttribPointer(GetAttribLocation("vPosition"), 3, VertexAttribPointerType.Float, false, 0, 0);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, vbo_color);
-			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(coldata.Length * Vector3.SizeInBytes),
-				coldata,
+			GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
+				triangle.GetColors(),
 				BufferUsageHint.StaticDraw
 				);
 			GL.VertexAttribPointer(GetAttribLocation("vColor"), 3, VertexAttribPointerType.Float, false, 0, 0);
@@ -308,6 +316,15 @@ namespace OpenTkExample
 			{
 				ydist = -0.05f;
 				triangle.SetTranslation(ydist, 'Y');
+			}
+
+			if (state.IsKeyDown(Key.F1))
+			{
+				triangle.SetColors(ncoldata);
+			}
+			if(state.IsKeyDown(Key.F2))
+			{
+				triangle.SetColors(coldata);
 			}
 			if (state.IsKeyDown(Key.Escape))
 			{
