@@ -151,9 +151,9 @@ namespace OpenTkExample
 
 
 			lamp = new Triangle(vertdata, coldata);
-			lamp.Position = new Vector3(2f, 2f, -4.0f);
+			lamp.Position = new Vector3(0f, 0f, 0.0f);
 			lamp.Rotation = new Vector3(0f, 0f, 0f);
-			lamp.Scale = new Vector3(1f, 1f, 1f);
+			lamp.Scale = new Vector3(0.05f, 0.05f, 0.05f);
 			lamp.CalculateModelMatrix();
 
 
@@ -182,7 +182,7 @@ namespace OpenTkExample
 			attribute_vpos = GetAttribLocation("vPosition");
 			attribute_vcol = GetAttribLocation("vColor");
 			uniform_mview = GetUniformLocation("modelview");
-			int ff = GetAttribLocation("vColorLight");
+			//int ff = GetAttribLocation("vColorLight");
 			GL.GenBuffers(1, out vbo_position);
 			GL.GenBuffers(1, out vbo_color);
 			GL.GenBuffers(1, out vbo_mview);
@@ -247,9 +247,12 @@ namespace OpenTkExample
 			GL.Viewport(0, 0, Width, Height);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.Enable(EnableCap.DepthTest);
+            //GL.Enable(EnableCap.CullFace);
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
-			GL.UseProgram(programId);
+            GL.UseProgram(programId);
 
 			GL.EnableVertexAttribArray(GetAttribLocation("vPosition"));
 			GL.UniformMatrix4(GetUniformLocation("modelview"), false, ref triangle.ModelViewProjectionMatrix);
@@ -274,9 +277,12 @@ namespace OpenTkExample
 
 
 
-			int objectColorLoc = GL.GetUniformLocation(programId, "color1");
-			int lightColorLoc = GL.GetUniformLocation(programId, "color2");
-			GL.Uniform3(objectColorLoc, 0.0f, 1.0f, 1.0f);
+			int objectColorLoc = GL.GetUniformLocation(programId, "objectColor");
+			int lightColorLoc = GL.GetUniformLocation(programId, "lightColor");
+            int modelLoc = GL.GetUniformLocation(programId, "model");
+
+            GL.Uniform4(modelLoc, 0.0f, 1.0f, 0.0f,1.0f);
+            GL.Uniform3(objectColorLoc, 0.0f, 1.0f, 1.0f);
 			GL.Uniform3(lightColorLoc, 1.0f, 1.0f, 1.0f);
 
  

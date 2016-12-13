@@ -105,10 +105,12 @@ namespace OpenTkExample
 			"	vec3 specular = specularStrength * spec * lightColor;	\n"+
 			// Result
 			"	vec3 result = (ambient + diffuse + specular) * objectColor; \n" +
-			"	color = vec4(result,1.0f);									\n" +
+            //"	color = vec4(0.0f,1.0f,0.0f,0.0);									\n" +
+            "   gl_FragColor = vec4(0.0f,0.0f,1.0f,1.0);  \n" +
+            //"   gl_FragColor.a = 0.5f; \n"+
+            //"	color = vec4(result,1.0f);									\n" +
 			"}							\n"
 			;
-
 		// basic light
 		//public static string VertexShaderX = 
 		//	"#version 330			\n"+
