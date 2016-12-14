@@ -22,6 +22,7 @@ namespace OpenTkExample
 
 		private Vector3[] _vertex;
 		private Vector3[] _colors;
+        private Vector3[] _normals;
 
 
 		public Triangle() { }
@@ -30,6 +31,14 @@ namespace OpenTkExample
 			SetVertex(vert);
 			SetColors(col);
 		}
+
+        public void SetNormals(Vector3[] v)
+        {
+            int l = v.Length;
+            _normals = new Vector3[l];
+            for (int i = 0; i < l; i++)
+                _normals[i] = v[i];
+        }
 
 
 		public void SetVertex(Vector3[] v)
@@ -45,6 +54,10 @@ namespace OpenTkExample
 			return this._vertex;
 		}
 
+        public Vector3[] GetNormals()
+        {
+            return this._normals;
+        }
 
 		public void SetColors(Vector3[] v)
 		{

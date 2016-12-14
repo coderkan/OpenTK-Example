@@ -12,7 +12,7 @@ namespace OpenTkExample
 {
     class ShaderGame : GameWindow
     {
-        int _vbo_position, _vbo_color, _vbo_point_position;
+        int _vbo_position, _vbo_color, _vbo_point_position, _vbo_normal;
 
         float deltaTime = 0.0f;
         float time = 0.0f , etime = 0.0f;
@@ -36,6 +36,7 @@ namespace OpenTkExample
 
 
         int programId, light_program_id;
+        Matrix4 projectionMatrix;
 
         public ShaderGame() :
             base(512, 512, new OpenTK.Graphics.GraphicsMode(32, 24, 0, 4))
@@ -62,7 +63,9 @@ namespace OpenTkExample
                 new Vector3( 0.8f, -0.8f, 0f),
                 new Vector3( 0f,  0.8f, 0f)
             };
- 
+
+            Vector3[] point_normals = CalculateNormals(point_vert);
+
 
 
             coldata = new Vector3[] {
@@ -81,6 +84,8 @@ namespace OpenTkExample
             point.Position = new Vector3(0f, 0f, -1.0f);
             point.Rotation = new Vector3(0f, 0f, 0f);
             point.Scale = new Vector3(.1f, .1f, .1f);
+
+            point.SetNormals(point_normals);
             point.CalculateModelMatrix();
 
 
@@ -88,6 +93,7 @@ namespace OpenTkExample
             GL.GenBuffers(1, out _vbo_position);
             GL.GenBuffers(1, out _vbo_color);
             GL.GenBuffers(1, out _vbo_point_position);
+            GL.GenBuffers(1, out _vbo_normal);
 
             GL.ClearColor(Color.Red);
             watch = System.Diagnostics.Stopwatch.StartNew();
@@ -109,38 +115,57 @@ namespace OpenTkExample
 
             int _position = GL.GetAttribLocation(programId, "vPosition");
             int _color = GL.GetAttribLocation(programId, "vColor");
+            int _normal = GL.GetAttribLocation(programId, "inNormal");
 
-            if (_position != -1 && _color != -1)
+            ///////
+
+            GL.EnableVertexAttribArray(_position);
+            GL.EnableVertexAttribArray(_color);
+            GL.EnableVertexAttribArray(_normal);
+            int _uniform = GL.GetUniformLocation(programId, "modelview");
+            if (_uniform != -1)
             {
-                GL.EnableVertexAttribArray(_position);
-                GL.EnableVertexAttribArray(_color);
-                int _uniform = GL.GetUniformLocation(programId, "modelview");
-                if (_uniform != -1)
-                {
-                    GL.UniformMatrix4(_uniform, false, ref triangle.ModelViewProjectionMatrix);
-                }
-                GL.DrawArrays(BeginMode.Triangles, 0, 3);
-                GL.DisableVertexAttribArray(_position);
-                GL.DisableVertexAttribArray(_color);
-
-
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_position);
-                GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetVertex().Length * Vector3.SizeInBytes),
-                    triangle.GetVertex(),
-                    BufferUsageHint.StaticDraw
-                    );
-                GL.VertexAttribPointer(_position, 3, VertexAttribPointerType.Float, false, 0, 0);
-
-
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_color);
-                GL.BufferData<Vector3>(
-                    BufferTarget.ArrayBuffer,
-                    (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
-                    triangle.GetColors(),
-                    BufferUsageHint.StaticDraw
-                    );
-                GL.VertexAttribPointer(_color, 3, VertexAttribPointerType.Float, false, 0, 0);
+                GL.UniformMatrix4(_uniform, false, ref triangle.ModelViewProjectionMatrix);
             }
+
+            int view_matrix_uniform = GL.GetUniformLocation(programId, "view_matrix");
+            GL.UniformMatrix4(view_matrix_uniform, false, ref triangle.ViewMatrix);
+
+
+
+            GL.DrawArrays(BeginMode.Triangles, 0, 3);
+            GL.DisableVertexAttribArray(_position);
+            GL.DisableVertexAttribArray(_color);
+            GL.DisableVertexAttribArray(_normal);
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_position);
+            GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetVertex().Length * Vector3.SizeInBytes),
+                triangle.GetVertex(),
+                BufferUsageHint.StaticDraw
+                );
+            GL.VertexAttribPointer(_position, 3, VertexAttribPointerType.Float, false, 0, 0);
+
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_color);
+            GL.BufferData<Vector3>(
+                BufferTarget.ArrayBuffer,
+                (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
+                triangle.GetColors(),
+                BufferUsageHint.StaticDraw
+                );
+            GL.VertexAttribPointer(_color, 3, VertexAttribPointerType.Float, false, 0, 0);
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_normal);
+            GL.BufferData<Vector3>(
+                BufferTarget.ArrayBuffer,
+                (IntPtr)(point.GetNormals().Length*Vector3.SizeInBytes),
+                point.GetNormals(),
+                BufferUsageHint.StaticDraw
+                );
+            GL.VertexAttribPointer(_normal, 3, VertexAttribPointerType.Float, false, 0, 0);
+
+
+       /////
 
 
             GL.UseProgram(light_program_id);
@@ -193,9 +218,6 @@ namespace OpenTkExample
 
             GL.Flush();
             SwapBuffers();
-
-
-
         }
 
 
@@ -219,10 +241,18 @@ namespace OpenTkExample
             int pos_loc = GL.GetAttribLocation(programId, "vPosition");
             int col_loc = GL.GetAttribLocation(programId, "vColor");
             int uni_loc = GL.GetUniformLocation(programId, "modelview");
+            int nomal_loc = GL.GetUniformLocation(programId, "normalMatrix");
+            int inNormal = GL.GetAttribLocation(programId, "inNormal");
+//            in vec3 inNormal;
+            //out vec3 vNormal;
+
+//            uniform mat4 modelview;
+//            uniform mat4 modelv;
+//            uniform mat4 normalMatrix;
 
 
         }
-
+        
         private void initLight()
         {
             light_program_id = GL.CreateProgram();
@@ -478,7 +508,30 @@ namespace OpenTkExample
 
         }
 
+        public Vector3[] CalculateNormals(Vector3[] verts)
+        {
+            Vector3[] normals = new Vector3[verts.Length];
+            int[] inds = new int[] { 0, 1, 2 };
+            for (int i = 0; i < inds.Length; i += 3)
+            {
+                Vector3 v1 = verts[inds[i]];
+                Vector3 v2 = verts[inds[i + 1]];
+                Vector3 v3 = verts[inds[i + 2]];
 
+                normals[inds[i]] += Vector3.Cross(v2 - v1, v3 - v1);
+                normals[inds[i + 1]] += Vector3.Cross(v2 - v1, v3 - v1);
+                normals[inds[i + 2]] += Vector3.Cross(v2 - v1, v3 - v1);
+            }
+            for (int i = 0; i < normals.Length; i++)
+            {
+                normals[i] = normals[i].Normalized();
+            }
+            for (int j = 0; j < normals.Length; j++)
+            {
+                Console.WriteLine("X : " + normals[j].X + " Y : " + normals[j].Y + " Z : " + normals[j].Z);
+            }
+            return normals;
+        }
 
         private void Mouse_WheelChanged(object sender, MouseWheelEventArgs e)
         {
