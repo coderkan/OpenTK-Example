@@ -288,7 +288,6 @@ namespace OpenTkExample
             GL.VertexAttribPointer(GetAttribLocation("vPosition"), 3, VertexAttribPointerType.Float, false, 0, 0);
 
 
-
             int nrmls;
             GL.GenBuffers(1, out nrmls);
             GL.BindBuffer(BufferTarget.ArrayBuffer, nrmls);
