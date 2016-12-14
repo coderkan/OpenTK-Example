@@ -1,5 +1,6 @@
 ﻿
 #version 330
+precision highp float;
 
 in vec4 color;
 out vec4 outputColor;

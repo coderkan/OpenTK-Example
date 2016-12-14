@@ -58,6 +58,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Content Include="fs_light.c" />
     <Compile Include="Game.cs" />
     <Compile Include="GameSquare.cs" />
     <Compile Include="Light.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Triangle.cs" />
     <Content Include="fs.c" />
     <Content Include="vs.c" />
+    <Content Include="vs_light.c" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
