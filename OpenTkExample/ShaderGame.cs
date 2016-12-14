@@ -17,10 +17,13 @@ namespace OpenTkExample
         float deltaTime = 0.0f;
         float time = 0.0f , etime = 0.0f;
         float xdist = 0.0f, ydist = 0.0f, zdist = 2.0f;
-        private static float xangle, yangle;
+        float xldist = 0.0f, yldist = 0.0f, zldist = 2.0f;
+        private static float xangle, yangle, xlangle, ylangle;
 
         bool autoRotate = false;
         bool right = false, left = false, up = false, down = false;
+        bool lright = false, lleft = false, lup = false, ldown = false;
+
 
         OpenTK.Input.KeyboardState lastKeystate;
         Vector3[] vertdata, coldata, ncoldata, normaldata , point_vert;
@@ -55,8 +58,11 @@ namespace OpenTkExample
 
             point_vert = new Vector3[]
             {
-                new Vector3(0.0f,0.0f,0.0f)
+                new Vector3(-0.8f, -0.8f, 0f),
+                new Vector3( 0.8f, -0.8f, 0f),
+                new Vector3( 0f,  0.8f, 0f)
             };
+ 
 
 
             coldata = new Vector3[] {
@@ -74,7 +80,7 @@ namespace OpenTkExample
             point = new Triangle(point_vert, coldata);
             point.Position = new Vector3(0f, 0f, -1.0f);
             point.Rotation = new Vector3(0f, 0f, 0f);
-            point.Scale = new Vector3(1f, 1f, 1f);
+            point.Scale = new Vector3(.1f, .1f, .1f);
             point.CalculateModelMatrix();
 
 
@@ -99,42 +105,42 @@ namespace OpenTkExample
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.DepthTest);
 
-            //GL.UseProgram(programId);
+            GL.UseProgram(programId);
 
-            //int _position = GL.GetAttribLocation(programId, "vPosition");
-            //int _color = GL.GetAttribLocation(programId, "vColor");
+            int _position = GL.GetAttribLocation(programId, "vPosition");
+            int _color = GL.GetAttribLocation(programId, "vColor");
 
-            //if (_position != -1 && _color != -1)
-            //{
-            //    GL.EnableVertexAttribArray(_position);
-            //    GL.EnableVertexAttribArray(_color);
-            //    int _uniform = GL.GetUniformLocation(programId, "modelview");
-            //    if(_uniform != -1)
-            //    {
-            //        GL.UniformMatrix4(_uniform,false, ref triangle.ModelViewProjectionMatrix);
-            //    }
-            //    GL.DrawArrays(BeginMode.Triangles, 0, 3);
-            //    GL.DisableVertexAttribArray(_position);
-            //    GL.DisableVertexAttribArray(_color);
-
-
-            //    GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_position);
-            //    GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetVertex().Length * Vector3.SizeInBytes),
-            //        triangle.GetVertex(),
-            //        BufferUsageHint.StaticDraw
-            //        );
-            //    GL.VertexAttribPointer(_position, 3, VertexAttribPointerType.Float, false, 0, 0);
+            if (_position != -1 && _color != -1)
+            {
+                GL.EnableVertexAttribArray(_position);
+                GL.EnableVertexAttribArray(_color);
+                int _uniform = GL.GetUniformLocation(programId, "modelview");
+                if (_uniform != -1)
+                {
+                    GL.UniformMatrix4(_uniform, false, ref triangle.ModelViewProjectionMatrix);
+                }
+                GL.DrawArrays(BeginMode.Triangles, 0, 3);
+                GL.DisableVertexAttribArray(_position);
+                GL.DisableVertexAttribArray(_color);
 
 
-            //    GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_color);
-            //    GL.BufferData<Vector3>(
-            //        BufferTarget.ArrayBuffer,
-            //        (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
-            //        triangle.GetColors(),
-            //        BufferUsageHint.StaticDraw
-            //        );
-            //    GL.VertexAttribPointer(_color, 3, VertexAttribPointerType.Float, false, 0, 0);
-            //}
+                GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_position);
+                GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle.GetVertex().Length * Vector3.SizeInBytes),
+                    triangle.GetVertex(),
+                    BufferUsageHint.StaticDraw
+                    );
+                GL.VertexAttribPointer(_position, 3, VertexAttribPointerType.Float, false, 0, 0);
+
+
+                GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_color);
+                GL.BufferData<Vector3>(
+                    BufferTarget.ArrayBuffer,
+                    (IntPtr)(triangle.GetColors().Length * Vector3.SizeInBytes),
+                    triangle.GetColors(),
+                    BufferUsageHint.StaticDraw
+                    );
+                GL.VertexAttribPointer(_color, 3, VertexAttribPointerType.Float, false, 0, 0);
+            }
 
 
             GL.UseProgram(light_program_id);
@@ -149,7 +155,7 @@ namespace OpenTkExample
 
                 GL.UniformMatrix4(light_modelview_uniform, false, ref point.ModelViewProjectionMatrix);
 
-                GL.DrawArrays(BeginMode.Points, 0, 1);
+                GL.DrawArrays(BeginMode.Triangles, 0, 3);
 
                 GL.DisableVertexAttribArray(light_position_location);
 
@@ -160,7 +166,7 @@ namespace OpenTkExample
                     point.GetVertex(),
                     BufferUsageHint.StaticDraw
                     );
-                GL.VertexAttribPointer(light_position_location, 1, VertexAttribPointerType.Float, false, 0, 0);
+                GL.VertexAttribPointer(light_position_location, 3, VertexAttribPointerType.Float, false, 0, 0);
 
 
             }
@@ -181,7 +187,7 @@ namespace OpenTkExample
 
 
             point.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
-            point.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
+            point.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zldist), Vector3.Zero, Vector3.UnitY);
             point.ModelViewProjectionMatrix = point.ModelMatrix * point.ViewMatrix * point.ViewProjectionMatrix;
 
 
@@ -288,6 +294,31 @@ namespace OpenTkExample
                 triangle.SetValueX(Matrix4.CreateRotationX(xangle));
             }
 
+
+            // Light 
+            if (lright)
+            {
+                ylangle = deltaTime;
+
+                point.SetValueY(Matrix4.CreateRotationY(ylangle));
+            }
+            if (lleft)
+            {
+                ylangle = -deltaTime;
+                point.SetValueY(Matrix4.CreateRotationY(ylangle));
+                Console.WriteLine("Left");
+            }
+            if (lup)
+            {
+                xlangle = deltaTime;
+                point.SetValueX(Matrix4.CreateRotationX(xlangle));
+            }
+            if (ldown)
+            {
+                xlangle = -deltaTime;
+                point.SetValueX(Matrix4.CreateRotationX(xlangle));
+            }
+
         }
 
         private void Inputs()
@@ -364,10 +395,84 @@ namespace OpenTkExample
             {
                 triangle.SetColors(coldata);
             }
+
+
+
+            // Light Move
+            if (state.IsKeyDown(Key.Keypad4)) // Left
+            {
+                xldist = -0.05f;
+                point.SetTranslation(xldist, 'X');
+            }
+            if (state.IsKeyDown(Key.Keypad6)) // Right
+            {
+                xldist = 0.05f;
+                point.SetTranslation(xldist, 'X');
+            }
+            if (state.IsKeyDown(Key.Keypad8)) // Up
+            {
+                yldist = 0.05f;
+                point.SetTranslation(yldist, 'Y');
+            }
+            if (state.IsKeyDown(Key.Keypad2)) // Down
+            {
+                yldist = -0.05f;
+                point.SetTranslation(yldist, 'Y');
+            }
+
+            // w
+            if (state.IsKeyUp(Key.U))
+            {
+                lup = true;
+            }
+            if (state.IsKeyDown(Key.U))
+            {
+                lup = false;
+            }
+            // s
+            if (state.IsKeyUp(Key.J))
+            {
+                ldown = true;
+            }
+            if (state.IsKeyDown(Key.J))
+            {
+                ldown = false;
+            }
+            // a
+            if (state.IsKeyUp(Key.H))
+            {
+                lleft = true;
+            }
+            if (state.IsKeyDown(Key.H))
+            {
+                lleft = false;
+            }
+            // d
+            if (state.IsKeyUp(Key.K))
+            {
+                lright = true;
+            }
+
+            if (state.IsKeyDown(Key.K))
+            {
+                lright = false;
+            }
+            if (state.IsKeyDown(Key.Keypad7))
+            {
+                zldist += 0.05f;
+            }
+            if (state.IsKeyDown(Key.Keypad1))
+            {
+                zldist -= 0.05f;
+            }
+
+
             if (state.IsKeyDown(Key.Escape))
             {
                 this.Exit();
             }
+
+            
 
 
 
