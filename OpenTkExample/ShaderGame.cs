@@ -77,7 +77,7 @@ namespace OpenTkExample
             triangle = new Triangle(vertdata, coldata);
             triangle.Position = new Vector3(0f, 0f, -2.0f);
             triangle.Rotation = new Vector3(0f, 0f, 0f);
-            triangle.Scale = new Vector3(1f, 1f, 1f);
+            triangle.Scale = new Vector3(3f, 3f, 3f);
             triangle.CalculateModelMatrix();
 
             point = new Triangle(point_vert, coldata);
@@ -95,7 +95,7 @@ namespace OpenTkExample
             GL.GenBuffers(1, out _vbo_point_position);
             GL.GenBuffers(1, out _vbo_normal);
 
-            GL.ClearColor(Color.Red);
+            GL.ClearColor(Color.Transparent);
             watch = System.Diagnostics.Stopwatch.StartNew();
         }
 
@@ -237,20 +237,21 @@ namespace OpenTkExample
 
             string s = GL.GetShaderInfoLog(fragmentShaderId);
             string s2 = GL.GetShaderInfoLog(vertexShaderId);
+            if(s.Length > 0)
+            {
+                Console.WriteLine("Error " + s);
+            }
+
+            if (s2.Length > 0)
+            {
+                Console.WriteLine("Error " + s2);
+            }
 
             int pos_loc = GL.GetAttribLocation(programId, "vPosition");
             int col_loc = GL.GetAttribLocation(programId, "vColor");
             int uni_loc = GL.GetUniformLocation(programId, "modelview");
             int nomal_loc = GL.GetUniformLocation(programId, "normalMatrix");
             int inNormal = GL.GetAttribLocation(programId, "inNormal");
-//            in vec3 inNormal;
-            //out vec3 vNormal;
-
-//            uniform mat4 modelview;
-//            uniform mat4 modelv;
-//            uniform mat4 normalMatrix;
-
-
         }
         
         private void initLight()
