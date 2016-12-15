@@ -13,12 +13,21 @@ in vec3 v_pos;
 
 
 uniform mat4 view_matrix;
+uniform mat4 model;
+
+
+out vec3 fragNormal;
 
 //vec3 ambient = vec3(0.1, 0.1, 0.1);
 //vec3 lightVecNormalized = normalize(0.5, 0.5, 2.0);
 //vec3 lightColor = vec3(0.9, 0.9, 0.7);
 
 void main() {
+
+
+
+
+
 
 	vec4 ncolor = color;
 	vec3 ambient = vec3(0.1, 0.1, 0.1);
@@ -44,6 +53,14 @@ void main() {
 	vec3 material_specular = vec3(0.3, 0.3, 0.3);
 
 	outputColor = outputColor + vec4(material_specular*lightColor, 0.0) * material_specularreflection;
+
+	//mat3 normalMatrix = transpose(inverse(mat3(model)));
+	//vec3 _normal = normalize(normalMatrix * fragNormal);
+
+	//outputColor = color;
+
+
+
 
 
 

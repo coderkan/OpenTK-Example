@@ -85,6 +85,8 @@ namespace OpenTkExample
             point.Rotation = new Vector3(0f, 0f, 0f);
             point.Scale = new Vector3(.1f, .1f, .1f);
 
+            
+
             point.SetNormals(point_normals);
             point.CalculateModelMatrix();
 
@@ -131,7 +133,8 @@ namespace OpenTkExample
             int view_matrix_uniform = GL.GetUniformLocation(programId, "view_matrix");
             GL.UniformMatrix4(view_matrix_uniform, false, ref triangle.ViewMatrix);
 
-
+            int model_location = GL.GetUniformLocation(programId, "model");
+            GL.UniformMatrix4(model_location,false,ref triangle.ModelMatrix);
 
             GL.DrawArrays(BeginMode.Triangles, 0, 3);
             GL.DisableVertexAttribArray(_position);
