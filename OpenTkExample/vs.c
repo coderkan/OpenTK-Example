@@ -18,13 +18,26 @@ out vec3 view_vec;
 out vec3 v_pos;
 
 
+in vec3 vert_normal;
+
+out vec3 frag_vert;
+out vec3 frag_normal;
+
+
+
+
 out vec3 fragNormal;
 
 void main() {
+
+	frag_vert = vPosition;
+	frag_normal = inNormal;
+
 	gl_Position = modelview * vec4(vPosition, 1.0);
-	vec4 vRes = view_matrix * vec4(inNormal, 0.0);
-	vNormal = vRes.xyz;
-	fragNormal = inNormal;
-	v_pos = vPosition;
+
+	//vec4 vRes = view_matrix * vec4(inNormal, 0.0);
+	//vNormal = vRes.xyz;
+	//fragNormal = inNormal;
+	//v_pos = vPosition;
 	color = vec4(vColor, 1.0);
 }

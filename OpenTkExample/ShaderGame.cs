@@ -130,8 +130,8 @@ namespace OpenTkExample
                 GL.UniformMatrix4(_uniform, false, ref triangle.ModelViewProjectionMatrix);
             }
 
-            int view_matrix_uniform = GL.GetUniformLocation(programId, "view_matrix");
-            GL.UniformMatrix4(view_matrix_uniform, false, ref triangle.ViewMatrix);
+            //int view_matrix_uniform = GL.GetUniformLocation(programId, "view_matrix");
+            //GL.UniformMatrix4(view_matrix_uniform, false, ref triangle.ViewMatrix);
 
             int model_location = GL.GetUniformLocation(programId, "model");
             GL.UniformMatrix4(model_location,false,ref triangle.ModelMatrix);

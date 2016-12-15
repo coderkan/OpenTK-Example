@@ -16,48 +16,64 @@ uniform mat4 view_matrix;
 uniform mat4 model;
 
 
-out vec3 fragNormal;
+in vec3 frag_vert;
+in vec3 frag_normal;
+in vec3 frag_position;
 
-//vec3 ambient = vec3(0.1, 0.1, 0.1);
-//vec3 lightVecNormalized = normalize(0.5, 0.5, 2.0);
-//vec3 lightColor = vec3(0.9, 0.9, 0.7);
 
 void main() {
 
 
+	vec3 light_position = vec3(1.0, 0.0, 1.0);
+	vec3 light_color = vec3(1.0, 1.0, 1.0);
+
+	mat3 normalMatrix = transpose(inverse(mat3(model)));
+	vec3 normal = normalize(normalMatrix * frag_normal);
+
+	//calculate the location of this fragment (pixel) in world coordinates
+	vec3 fragPosition = vec3(model * vec4(frag_vert, 1));
+
+	//calculate the vector from this pixels surface to the light source
+	vec3 surfaceToLight = light_position - fragPosition;
+
+	//calculate the cosine of the angle of incidence
+	float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));
+	brightness = clamp(brightness, 0, 1);
+
+	//calculate final color of the pixel, based on:
+	// 1. The angle of incidence: brightness
+	// 2. The color/intensities of the light: light.intensities
+	// 3. The texture and texture coord: texture(tex, fragTexCoord)
+	vec4 surfaceColor = color; //texture(tex, fragTexCoord);
+	outputColor = vec4(brightness * light_color * surfaceColor.rgb, surfaceColor.a);
 
 
 
 
-	vec4 ncolor = color;
-	vec3 ambient = vec3(0.1, 0.1, 0.1);
-	//vec3 lightVector = vec3(0.5, 0.5, 2.0);
-	vec3 lightVector = vec3(1.0, 0.0, 1.0);
-	vec3 lightColor = vec3(0.9, 0.9, 0.7);
+	//vec4 ncolor = color;
+	//vec3 ambient = vec3(0.1, 0.1, 0.1);
+	////vec3 lightVector = vec3(0.5, 0.5, 2.0);
+	//vec3 lightVector = vec3(1.0, 0.0, 1.0);
+	//vec3 lightColor = vec3(0.9, 0.9, 0.7);
 
-	vec3 lightVecNormalized = normalize(lightVector);
-	vec3 inverselightVecNormalized = normalize(-lightVector);
+	//vec3 lightVecNormalized = normalize(lightVector);
+	//vec3 inverselightVecNormalized = normalize(-lightVector);
 
-	float dotproduct = dot(lightVecNormalized, normalize(vNormal));
-	float diffuse = clamp(dotproduct, 0.0, 1.0);
+	//float dotproduct = dot(lightVecNormalized, normalize(vNormal));
+	//float diffuse = clamp(dotproduct, 0.0, 1.0);
 
-	vec4 diffuse_color = vec4(ambient + diffuse * lightColor, 1.0);
+	//vec4 diffuse_color = vec4(ambient + diffuse * lightColor, 1.0);
 
-	outputColor = ncolor * diffuse_color;
+	//outputColor = ncolor * diffuse_color;
 
-	// specular 
-	vec3 reflectionvec = normalize(reflect(-lightVector, vNormal));
-	vec3 viewvec = normalize(vec3(inverse(view_matrix) * vec4(0, 0, 0, 1)) - v_pos);
-	float material_specularreflection = max(dot(vNormal, lightVector), 0.0) * pow(max(dot(reflectionvec, viewvec), 0.0), 2.0);
+	//// specular 
+	//vec3 reflectionvec = normalize(reflect(-lightVector, vNormal));
+	//vec3 viewvec = normalize(vec3(inverse(view_matrix) * vec4(0, 0, 0, 1)) - v_pos);
+	//float material_specularreflection = max(dot(vNormal, lightVector), 0.0) * pow(max(dot(reflectionvec, viewvec), 0.0), 2.0);
 
-	vec3 material_specular = vec3(0.3, 0.3, 0.3);
+	//vec3 material_specular = vec3(0.3, 0.3, 0.3);
 
-	outputColor = outputColor + vec4(material_specular*lightColor, 0.0) * material_specularreflection;
-
-	//mat3 normalMatrix = transpose(inverse(mat3(model)));
-	//vec3 _normal = normalize(normalMatrix * fragNormal);
-
-	//outputColor = color;
+	//outputColor = outputColor + vec4(material_specular*lightColor, 0.0) * material_specularreflection;
 
 
 
