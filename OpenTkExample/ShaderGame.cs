@@ -12,7 +12,8 @@ namespace OpenTkExample
 {
     class ShaderGame : GameWindow
     {
-        int _vbo_position, _vbo_color, _vbo_point_position, _vbo_normal;
+        int _vbo_position, _vbo_color, _vbo_point_position, _vbo_normal,
+            _vbo_position2, _vbo_color2, _vbo_point_position2, _vbo_normal2;
 
         float deltaTime = 0.0f;
         float time = 0.0f , etime = 0.0f;
@@ -26,16 +27,17 @@ namespace OpenTkExample
 
 
         OpenTK.Input.KeyboardState lastKeystate;
-        Vector3[] vertdata, coldata, ncoldata, normaldata , point_vert;
+        Vector3[] vertdata, coldata, coldata2, ncoldata, normaldata , point_vert;
         private static System.Diagnostics.Stopwatch watch;
 
         Triangle triangle;
+        Triangle triangle2;
 
         Triangle point;
 
 
 
-        int programId, light_program_id;
+        int programId, light_program_id, programId2;
         Matrix4 projectionMatrix;
 
         public ShaderGame() :
@@ -48,8 +50,9 @@ namespace OpenTkExample
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            
+
             init();
+            init2();
             initLight();
 
             vertdata = new Vector3[] {
@@ -74,11 +77,27 @@ namespace OpenTkExample
                 new Vector3( 0f, 0f, 1f)
             };
 
+            coldata2 = new Vector3[] {
+                new Vector3( 0f, 1f, 0f),
+                new Vector3( 0f, 1f, 0f),
+                new Vector3( 0f, 1f, 0f)
+            };
+
             triangle = new Triangle(vertdata, coldata);
             triangle.Position = new Vector3(0f, 0f, -2.0f);
             triangle.Rotation = new Vector3(0f, 0f, 0f);
             triangle.Scale = new Vector3(3f, 3f, 3f);
+            triangle.SetNormals(point_normals);
             triangle.CalculateModelMatrix();
+
+
+
+            triangle2 = new Triangle(vertdata, coldata2);
+            triangle2.Position = new Vector3(0f, 0f, -2.0f);
+            triangle2.Rotation = new Vector3(0f, 0f, 0f);
+            triangle2.Scale = new Vector3(3f, 3f, 3f);
+            triangle2.SetNormals(point_normals);
+            triangle2.CalculateModelMatrix();
 
             point = new Triangle(point_vert, coldata);
             point.Position = new Vector3(0f, 0f, -1.0f);
@@ -96,6 +115,11 @@ namespace OpenTkExample
             GL.GenBuffers(1, out _vbo_color);
             GL.GenBuffers(1, out _vbo_point_position);
             GL.GenBuffers(1, out _vbo_normal);
+
+            GL.GenBuffers(1, out _vbo_position2);
+            GL.GenBuffers(1, out _vbo_color2);
+            GL.GenBuffers(1, out _vbo_point_position2);
+            GL.GenBuffers(1, out _vbo_normal2);
 
             GL.ClearColor(Color.Transparent);
             watch = System.Diagnostics.Stopwatch.StartNew();
@@ -161,15 +185,68 @@ namespace OpenTkExample
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_normal);
             GL.BufferData<Vector3>(
                 BufferTarget.ArrayBuffer,
-                (IntPtr)(point.GetNormals().Length*Vector3.SizeInBytes),
-                point.GetNormals(),
+                (IntPtr)(triangle.GetNormals().Length*Vector3.SizeInBytes),
+                triangle.GetNormals(),
                 BufferUsageHint.StaticDraw
                 );
             GL.VertexAttribPointer(_normal, 3, VertexAttribPointerType.Float, false, 0, 0);
 
 
-       /////
+            /////
 
+            GL.UseProgram(programId2);
+
+            int _position2 = GL.GetAttribLocation(programId2, "vPosition");
+            int _color2 = GL.GetAttribLocation(programId2, "vColor");
+            int _normal2 = GL.GetAttribLocation(programId2, "inNormal");
+
+
+            GL.EnableVertexAttribArray(_position2);
+            GL.EnableVertexAttribArray(_color2);
+            GL.EnableVertexAttribArray(_normal2);
+            int _uniform2 = GL.GetUniformLocation(programId2, "modelview");
+            if (_uniform2 != -1)
+            {
+                GL.UniformMatrix4(_uniform2, false, ref triangle2.ModelViewProjectionMatrix);
+            }
+
+
+            int model_location2 = GL.GetUniformLocation(programId2, "model");
+            GL.UniformMatrix4(model_location2, false, ref triangle2.ModelMatrix);
+
+            GL.DrawArrays(BeginMode.Triangles, 0, 3);
+            GL.DisableVertexAttribArray(_position2);
+            GL.DisableVertexAttribArray(_color2);
+            GL.DisableVertexAttribArray(_normal2);
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_position2);
+            GL.BufferData<Vector3>(BufferTarget.ArrayBuffer, (IntPtr)(triangle2.GetVertex().Length * Vector3.SizeInBytes),
+                triangle2.GetVertex(),
+                BufferUsageHint.StaticDraw
+                );
+            GL.VertexAttribPointer(_position2, 3, VertexAttribPointerType.Float, false, 0, 0);
+
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_color2);
+            GL.BufferData<Vector3>(
+                BufferTarget.ArrayBuffer,
+                (IntPtr)(triangle2.GetColors().Length * Vector3.SizeInBytes),
+                triangle2.GetColors(),
+                BufferUsageHint.StaticDraw
+                );
+            GL.VertexAttribPointer(_color2, 3, VertexAttribPointerType.Float, false, 0, 0);
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo_normal2);
+            GL.BufferData<Vector3>(
+                BufferTarget.ArrayBuffer,
+                (IntPtr)(triangle2.GetNormals().Length * Vector3.SizeInBytes),
+                triangle2.GetNormals(),
+                BufferUsageHint.StaticDraw
+                );
+            GL.VertexAttribPointer(_normal2, 3, VertexAttribPointerType.Float, false, 0, 0);
+
+
+            //////
 
             GL.UseProgram(light_program_id);
 
@@ -195,8 +272,6 @@ namespace OpenTkExample
                     BufferUsageHint.StaticDraw
                     );
                 GL.VertexAttribPointer(light_position_location, 3, VertexAttribPointerType.Float, false, 0, 0);
-
-
             }
 
 
@@ -213,6 +288,10 @@ namespace OpenTkExample
             triangle.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
             triangle.ModelViewProjectionMatrix = triangle.ModelMatrix * triangle.ViewMatrix * triangle.ViewProjectionMatrix;
 
+
+            triangle2.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
+            triangle2.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zdist), Vector3.Zero, Vector3.UnitY);
+            triangle2.ModelViewProjectionMatrix = triangle2.ModelMatrix * triangle2.ViewMatrix * triangle2.ViewProjectionMatrix;
 
             point.ViewProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 100.0f);
             point.ViewMatrix = Matrix4.LookAt(new Vector3(0, 0, zldist), Vector3.Zero, Vector3.UnitY);
@@ -256,7 +335,39 @@ namespace OpenTkExample
             int nomal_loc = GL.GetUniformLocation(programId, "normalMatrix");
             int inNormal = GL.GetAttribLocation(programId, "inNormal");
         }
-        
+
+        private void init2()
+        {
+            programId2 = GL.CreateProgram();
+            if (programId2 == 0)
+            {
+                Console.WriteLine("Error Creating ProgramId " + programId2);
+                return;
+            }
+            int vertexShaderId = LoadShader(programId2, "C:\\CrossPlatform\\OpenTkExample\\OpenTkExample\\vs.c", ShaderType.VertexShader);
+            int fragmentShaderId = LoadShader(programId2, "C:\\CrossPlatform\\OpenTkExample\\OpenTkExample\\fs.c", ShaderType.FragmentShader);
+            // Link Program
+            GL.LinkProgram(programId2);
+
+            string s = GL.GetShaderInfoLog(fragmentShaderId);
+            string s2 = GL.GetShaderInfoLog(vertexShaderId);
+            if (s.Length > 0)
+            {
+                Console.WriteLine("Error " + s);
+            }
+
+            if (s2.Length > 0)
+            {
+                Console.WriteLine("Error " + s2);
+            }
+
+            int pos_loc = GL.GetAttribLocation(programId2, "vPosition");
+            int col_loc = GL.GetAttribLocation(programId2, "vColor");
+            int uni_loc = GL.GetUniformLocation(programId2, "modelview");
+            int nomal_loc = GL.GetUniformLocation(programId2, "normalMatrix");
+            int inNormal = GL.GetAttribLocation(programId2, "inNormal");
+        }
+
         private void initLight()
         {
             light_program_id = GL.CreateProgram();
@@ -335,22 +446,26 @@ namespace OpenTkExample
                 ylangle = deltaTime;
 
                 point.SetValueY(Matrix4.CreateRotationY(ylangle));
+                triangle2.SetValueY(Matrix4.CreateRotationY(ylangle));
             }
             if (lleft)
             {
                 ylangle = -deltaTime;
                 point.SetValueY(Matrix4.CreateRotationY(ylangle));
+                triangle2.SetValueY(Matrix4.CreateRotationY(ylangle));
                 Console.WriteLine("Left");
             }
             if (lup)
             {
                 xlangle = deltaTime;
                 point.SetValueX(Matrix4.CreateRotationX(xlangle));
+                triangle2.SetValueX(Matrix4.CreateRotationX(xlangle));
             }
             if (ldown)
             {
                 xlangle = -deltaTime;
                 point.SetValueX(Matrix4.CreateRotationX(xlangle));
+                triangle2.SetValueX(Matrix4.CreateRotationX(xlangle));
             }
 
         }
@@ -437,21 +552,25 @@ namespace OpenTkExample
             {
                 xldist = -0.05f;
                 point.SetTranslation(xldist, 'X');
+                triangle2.SetTranslation(xldist, 'X');
             }
             if (state.IsKeyDown(Key.Keypad6)) // Right
             {
                 xldist = 0.05f;
                 point.SetTranslation(xldist, 'X');
+                triangle2.SetTranslation(xldist, 'X');
             }
             if (state.IsKeyDown(Key.Keypad8)) // Up
             {
                 yldist = 0.05f;
                 point.SetTranslation(yldist, 'Y');
+                triangle2.SetTranslation(yldist, 'Y');
             }
             if (state.IsKeyDown(Key.Keypad2)) // Down
             {
                 yldist = -0.05f;
                 point.SetTranslation(yldist, 'Y');
+                triangle2.SetTranslation(yldist, 'Y');
             }
 
             // w
